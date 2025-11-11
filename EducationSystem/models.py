@@ -1,3 +1,1330 @@
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
+from django.core.exceptions import ValidationError
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.contrib.contenttypes.models import ContentType
+from django.utils import timezone
+import jdatetime
+from datetime import datetime, date
 
-# Create your models here.
+
+# ============================================
+# مدل‌های پایه - جداول مرجع
+# ============================================
+
+class Country(models.Model):
+    """
+    جدول کشورها
+    برای ذخیره اطلاعات کشورها استفاده می‌شود
+    """
+    name = models.CharField(
+        max_length=100,
+        unique=True,
+        verbose_name="نام کشور",
+        help_text="نام کشور به فارسی"
+    )
+    code = models.CharField(
+        max_length=3,
+        unique=True,
+        verbose_name="کد کشور",
+        help_text="کد سه حرفی کشور (مثل IRN)"
+    )
+
+    class Meta:
+        verbose_name = "کشور"
+        verbose_name_plural = "کشورها"
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class Province(models.Model):
+    """
+    جدول استان‌ها
+    برای ذخیره اطلاعات استان‌های کشور استفاده می‌شود
+    """
+    name = models.CharField(
+        max_length=100,
+        unique=True,
+        verbose_name="نام استان",
+        help_text="نام استان به فارسی"
+    )
+    country = models.ForeignKey(
+        Country,
+        on_delete=models.CASCADE,
+        related_name='provinces',
+        verbose_name="کشور",
+        help_text="کشوری که این استان به آن تعلق دارد"
+    )
+
+    class Meta:
+        verbose_name = "استان"
+        verbose_name_plural = "استان‌ها"
+        ordering = ['name']
+        unique_together = ['name', 'country']
+
+    def __str__(self):
+        return f"{self.name} - {self.country.name}"
+
+
+class City(models.Model):
+    """
+    جدول شهرها
+    برای ذخیره اطلاعات شهرها استفاده می‌شود
+    """
+    name = models.CharField(
+        max_length=100,
+        verbose_name="نام شهر",
+        help_text="نام شهر به فارسی"
+    )
+    province = models.ForeignKey(
+        to=Province,
+        on_delete=models.CASCADE,
+        related_name='cities',
+        verbose_name="استان",
+        help_text="استانی که این شهر به آن تعلق دارد"
+    )
+
+    class Meta:
+        verbose_name = "شهر"
+        verbose_name_plural = "شهرها"
+        ordering = ['name']
+        unique_together = ['name', 'province']
+
+    def __str__(self):
+        return f"{self.name} - {self.province.name}"
+
+
+class ContactType(models.Model):
+    """
+    جدول انواع تماس
+    برای تعریف انواع روش‌های تماس (تلفن، ایمیل، موبایل و ...)
+    """
+    name = models.CharField(
+        max_length=50,
+        unique=True,
+        verbose_name="نوع تماس",
+        help_text="نوع تماس (مثل تلفن ثابت، موبایل، ایمیل)"
+    )
+
+    class Meta:
+        verbose_name = "نوع تماس"
+        verbose_name_plural = "انواع تماس"
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+# ============================================
+# مدل Person - مدل پایه برای افراد
+# ============================================
+
+class Person(models.Model):
+    """
+    مدل پایه برای اطلاعات مشترک افراد
+    این مدل abstract است و برای Student، Professor و Staff استفاده می‌شود
+    """
+    # Choices برای جنسیت
+    GENDER_CHOICES = [
+        ('M', 'مرد'),
+        ('F', 'زن'),
+    ]
+
+    # Choices برای وضعیت تاهل
+    MARITAL_STATUS_CHOICES = [
+        ('S', 'مجرد'),
+        ('M', 'متاهل'),
+        ('D', 'مطلقه'),
+        ('W', 'بیوه'),
+    ]
+
+    # Choices برای وضعیت نظام وظیفه
+    MILITARY_STATUS_CHOICES = [
+        ('E', 'معاف'),
+        ('C', 'مشمول'),
+        ('D', 'دارای کارت پایان خدمت'),
+        ('N', 'غیرمشمول'),
+    ]
+
+    first_name = models.CharField(
+        max_length=100,
+        verbose_name="نام",
+        help_text="نام فرد"
+    )
+    last_name = models.CharField(
+        max_length=100,
+        verbose_name="نام خانوادگی",
+        help_text="نام خانوادگی فرد"
+    )
+    national_id = models.CharField(
+        max_length=10,
+        unique=True,
+        verbose_name="کد ملی",
+        help_text="کد ملی ۱۰ رقمی",
+        validators=[
+            RegexValidator(
+                regex=r'^\d{10}$',
+                message='کد ملی باید دقیقاً ۱۰ رقم باشد'
+            )
+        ]
+    )
+    id_number = models.CharField(
+        max_length=20,
+        unique=True,
+        verbose_name="شماره شناسنامه",
+        help_text="شماره شناسنامه"
+    )
+    birth_date_shamsi = models.CharField(
+        max_length=10,
+        verbose_name="تاریخ تولد (شمسی)",
+        help_text="تاریخ تولد به صورت شمسی (YYYY/MM/DD)"
+    )
+    birth_place = models.ForeignKey(
+        City,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='%(class)s_born_people',
+        related_query_name='%(class)s_born',
+        verbose_name="محل تولد",
+        help_text="شهر محل تولد"
+    )
+    gender = models.CharField(
+        max_length=1,
+        choices=GENDER_CHOICES,
+        verbose_name="جنسیت",
+        help_text="جنسیت فرد"
+    )
+    marital_status = models.CharField(
+        max_length=1,
+        choices=MARITAL_STATUS_CHOICES,
+        verbose_name="وضعیت تاهل",
+        help_text="وضعیت تاهل فرد"
+    )
+    military_status = models.CharField(
+        max_length=1,
+        choices=MILITARY_STATUS_CHOICES,
+        null=True,
+        blank=True,
+        verbose_name="وضعیت نظام وظیفه",
+        help_text="وضعیت نظام وظیفه (فقط برای آقایان)"
+    )
+    address = models.TextField(
+        verbose_name="آدرس",
+        help_text="آدرس کامل محل سکونت",
+        null=True,
+        blank=True
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="تاریخ ایجاد",
+        help_text="تاریخ و زمان ایجاد رکورد"
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name="تاریخ بروزرسانی",
+        help_text="تاریخ و زمان آخرین بروزرسانی"
+    )
+
+    class Meta:
+        abstract = True
+        ordering = ['last_name', 'first_name']
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}"
+
+    def clean(self):
+        """اعتبارسنجی مدل"""
+        super().clean()
+        # اعتبارسنجی کد ملی
+        if self.national_id:
+            if len(self.national_id) != 10:
+                raise ValidationError({'national_id': 'کد ملی باید دقیقاً ۱۰ رقم باشد'})
+            # بررسی صحت کد ملی (الگوریتم چک دیجیت)
+            if not self._validate_national_id(self.national_id):
+                raise ValidationError({'national_id': 'کد ملی معتبر نیست'})
+        
+        # اعتبارسنجی تاریخ تولد شمسی
+        if self.birth_date_shamsi:
+            try:
+                parts = self.birth_date_shamsi.split('/')
+                if len(parts) != 3:
+                    raise ValidationError({'birth_date_shamsi': 'فرمت تاریخ باید YYYY/MM/DD باشد'})
+                year, month, day = int(parts[0]), int(parts[1]), int(parts[2])
+                jdatetime.date(year, month, day)
+            except (ValueError, AttributeError):
+                raise ValidationError({'birth_date_shamsi': 'تاریخ تولد شمسی معتبر نیست'})
+
+    def _validate_national_id(self, national_id):
+        """اعتبارسنجی کد ملی با الگوریتم چک دیجیت"""
+        if len(national_id) != 10:
+            return False
+        try:
+            check = int(national_id[9])
+            s = sum(int(national_id[i]) * (10 - i) for i in range(9)) % 11
+            return (s < 2 and check == s) or (s >= 2 and check == 11 - s)
+        except ValueError:
+            return False
+
+    @property
+    def full_name(self):
+        """نام کامل فرد"""
+        return f"{self.first_name} {self.last_name}"
+
+    @property
+    def age(self):
+        """محاسبه سن فرد بر اساس تاریخ تولد شمسی"""
+        try:
+            parts = self.birth_date_shamsi.split('/')
+            if len(parts) != 3:
+                return None
+            year, month, day = int(parts[0]), int(parts[1]), int(parts[2])
+            birth_date = jdatetime.date(year, month, day)
+            today = jdatetime.date.today()
+            age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
+            return age
+        except (ValueError, AttributeError):
+            return None
+
+
+class ContactInfo(models.Model):
+    """
+    جدول اطلاعات تماس
+    برای ذخیره اطلاعات تماس افراد (تلفن، ایمیل و ...)
+    از GenericForeignKey برای ارتباط با Person استفاده می‌شود
+    """
+    content_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.CASCADE,
+        verbose_name="نوع محتوا",
+        help_text="نوع مدلی که این تماس به آن تعلق دارد"
+    )
+    object_id = models.PositiveIntegerField(
+        verbose_name="شناسه شی",
+        help_text="شناسه شی مورد نظر"
+    )
+    person = GenericForeignKey('content_type', 'object_id')
+    
+    contact_type = models.ForeignKey(
+        ContactType,
+        on_delete=models.CASCADE,
+        related_name='contacts',
+        verbose_name="نوع تماس",
+        help_text="نوع تماس (تلفن، موبایل، ایمیل و ...)"
+    )
+    value = models.CharField(
+        max_length=255,
+        verbose_name="مقدار",
+        help_text="مقدار تماس (شماره تلفن، آدرس ایمیل و ...)"
+    )
+    is_primary = models.BooleanField(
+        default=False,
+        verbose_name="تماس اصلی",
+        help_text="آیا این تماس اصلی است؟"
+    )
+
+    class Meta:
+        verbose_name = "اطلاعات تماس"
+        verbose_name_plural = "اطلاعات تماس‌ها"
+        ordering = ['-is_primary', 'contact_type']
+        unique_together = ['content_type', 'object_id', 'contact_type', 'value']
+
+    def __str__(self):
+        return f"{self.person} - {self.contact_type}: {self.value}"
+
+    def clean(self):
+        """اعتبارسنجی اطلاعات تماس"""
+        super().clean()
+        # اعتبارسنجی ایمیل
+        if 'email' in self.contact_type.name.lower() or 'ایمیل' in self.contact_type.name:
+            if '@' not in self.value:
+                raise ValidationError({'value': 'آدرس ایمیل معتبر نیست'})
+
+
+# ============================================
+# مدل‌های Student, Professor, Staff
+# ============================================
+
+class Student(Person):
+    """
+    مدل دانشجو
+    از مدل Person ارث می‌برد و اطلاعات خاص دانشجو را شامل می‌شود
+    """
+    student_number = models.CharField(
+        max_length=20,
+        unique=True,
+        verbose_name="شماره دانشجویی",
+        help_text="شماره دانشجویی منحصر به فرد"
+    )
+    field_of_study = models.ForeignKey(
+        'FieldOfStudy',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='students',
+        verbose_name="رشته تحصیلی",
+        help_text="رشته تحصیلی دانشجو"
+    )
+    specialization = models.ForeignKey(
+        'Specialization',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='students',
+        verbose_name="گرایش",
+        help_text="گرایش تحصیلی دانشجو"
+    )
+    enrollment_date = models.CharField(
+        max_length=10,
+        verbose_name="تاریخ ثبت‌نام (شمسی)",
+        help_text="تاریخ ثبت‌نام در دانشگاه به صورت شمسی"
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="فعال",
+        help_text="آیا دانشجو فعال است؟"
+    )
+
+    class Meta:
+        verbose_name = "دانشجو"
+        verbose_name_plural = "دانشجویان"
+        ordering = ['student_number']
+
+    def __str__(self):
+        return f"{self.student_number} - {self.full_name}"
+
+    @property
+    def total_credits_passed(self):
+        """محاسبه تعداد واحدهای گذرانده شده"""
+        registrations = StudentClassRegistration.objects.filter(
+            student=self,
+            status='P'  # Passed
+        )
+        return sum(reg.class_course.course.credits for reg in registrations)
+
+    @property
+    def total_credits_remaining(self):
+        """محاسبه تعداد واحدهای باقیمانده"""
+        field = self.field_of_study
+        if not field:
+            return None
+        total_required = field.total_credits
+        passed = self.total_credits_passed
+        return max(0, total_required - passed) if total_required else None
+
+    @property
+    def gpa(self):
+        """محاسبه معدل کل دانشجو"""
+        registrations = StudentClassRegistration.objects.filter(
+            student=self,
+            grade__isnull=False
+        )
+        if not registrations.exists():
+            return None
+        
+        total_points = 0
+        total_credits = 0
+        for reg in registrations:
+            credits = reg.class_course.course.credits
+            grade = reg.grade
+            if grade is not None:
+                total_points += grade * credits
+                total_credits += credits
+        
+        return round(total_points / total_credits, 2) if total_credits > 0 else None
+
+
+class Professor(Person):
+    """
+    مدل استاد
+    از مدل Person ارث می‌برد و اطلاعات خاص استاد را شامل می‌شود
+    """
+    # Choices برای نوع قرارداد
+    CONTRACT_TYPE_CHOICES = [
+        ('F', 'تمام وقت'),
+        ('P', 'پاره وقت'),
+        ('V', 'مهمان'),
+    ]
+
+    professor_code = models.CharField(
+        max_length=20,
+        unique=True,
+        verbose_name="کد استادی",
+        help_text="کد منحصر به فرد استاد"
+    )
+    employee_number = models.CharField(
+        max_length=20,
+        unique=True,
+        null=True,
+        blank=True,
+        verbose_name="شماره پرسنلی",
+        help_text="شماره پرسنلی استاد"
+    )
+    contract_type = models.CharField(
+        max_length=1,
+        choices=CONTRACT_TYPE_CHOICES,
+        verbose_name="نوع قرارداد",
+        help_text="نوع قرارداد استخدامی"
+    )
+    hire_date = models.CharField(
+        max_length=10,
+        verbose_name="تاریخ استخدام (شمسی)",
+        help_text="تاریخ شروع به کار به صورت شمسی"
+    )
+    expertise = models.TextField(
+        verbose_name="تخصص",
+        help_text="حوزه‌های تخصصی استاد",
+        null=True,
+        blank=True
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="فعال",
+        help_text="آیا استاد فعال است؟"
+    )
+
+    class Meta:
+        verbose_name = "استاد"
+        verbose_name_plural = "اساتید"
+        ordering = ['professor_code']
+
+    def __str__(self):
+        return f"{self.professor_code} - {self.full_name}"
+
+    @property
+    def teaching_experience_years(self):
+        """محاسبه سابقه تدریس به سال"""
+        try:
+            parts = self.hire_date.split('/')
+            if len(parts) != 3:
+                return None
+            year, month, day = int(parts[0]), int(parts[1]), int(parts[2])
+            hire_date = jdatetime.date(year, month, day)
+            today = jdatetime.date.today()
+            years = today.year - hire_date.year - ((today.month, today.day) < (hire_date.month, hire_date.day))
+            return max(0, years)
+        except (ValueError, AttributeError):
+            return None
+
+    @property
+    def current_term_courses_count(self):
+        """تعداد درس‌های تدریس شده در ترم جاری"""
+        current_term = Term.objects.filter(is_current=True).first()
+        if not current_term:
+            return 0
+        return ProfessorCourseAssignment.objects.filter(
+            professor=self,
+            class_course__term=current_term
+        ).count()
+
+
+class Staff(Person):
+    """
+    مدل کارمند
+    از مدل Person ارث می‌برد و اطلاعات خاص کارمند را شامل می‌شود
+    """
+    # Choices برای نوع قرارداد کارمند
+    CONTRACT_TYPE_CHOICES = [
+        ('F', 'تمام وقت'),
+        ('P', 'پاره وقت'),
+        ('C', 'قراردادی'),
+    ]
+
+    employee_number = models.CharField(
+        max_length=20,
+        unique=True,
+        verbose_name="شماره پرسنلی",
+        help_text="شماره پرسنلی کارمند"
+    )
+    contract_type = models.CharField(
+        max_length=1,
+        choices=CONTRACT_TYPE_CHOICES,
+        verbose_name="نوع قرارداد",
+        help_text="نوع قرارداد استخدامی"
+    )
+    hire_date = models.CharField(
+        max_length=10,
+        verbose_name="تاریخ استخدام (شمسی)",
+        help_text="تاریخ شروع به کار به صورت شمسی"
+    )
+    position = models.CharField(
+        max_length=100,
+        verbose_name="سمت",
+        help_text="سمت شغلی کارمند"
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="فعال",
+        help_text="آیا کارمند فعال است؟"
+    )
+
+    class Meta:
+        verbose_name = "کارمند"
+        verbose_name_plural = "کارمندان"
+        ordering = ['employee_number']
+
+    def __str__(self):
+        return f"{self.employee_number} - {self.full_name}"
+
+
+# ============================================
+# مدل‌های ساختار آموزشی
+# ============================================
+
+class College(models.Model):
+    """
+    جدول دانشکده‌ها
+    برای ذخیره اطلاعات دانشکده‌های دانشگاه
+    """
+    name = models.CharField(
+        max_length=200,
+        unique=True,
+        verbose_name="نام دانشکده",
+        help_text="نام دانشکده"
+    )
+    code = models.CharField(
+        max_length=20,
+        unique=True,
+        verbose_name="کد دانشکده",
+        help_text="کد منحصر به فرد دانشکده"
+    )
+    description = models.TextField(
+        verbose_name="توضیحات",
+        help_text="توضیحات مربوط به دانشکده",
+        null=True,
+        blank=True
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="فعال",
+        help_text="آیا دانشکده فعال است؟"
+    )
+
+    class Meta:
+        verbose_name = "دانشکده"
+        verbose_name_plural = "دانشکده‌ها"
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class FieldOfStudy(models.Model):
+    """
+    جدول رشته‌های تحصیلی
+    برای ذخیره اطلاعات رشته‌های تحصیلی
+    """
+    name = models.CharField(
+        max_length=200,
+        verbose_name="نام رشته",
+        help_text="نام رشته تحصیلی"
+    )
+    code = models.CharField(
+        max_length=20,
+        verbose_name="کد رشته",
+        help_text="کد منحصر به فرد رشته"
+    )
+    college = models.ForeignKey(
+        College,
+        on_delete=models.CASCADE,
+        related_name='fields_of_study',
+        verbose_name="دانشکده",
+        help_text="دانشکده مربوط به این رشته"
+    )
+    degree_level = models.CharField(
+        max_length=50,
+        verbose_name="مقطع تحصیلی",
+        help_text="مقطع تحصیلی (کارشناسی، کارشناسی ارشد، دکتری و ...)"
+    )
+    total_credits = models.PositiveIntegerField(
+        verbose_name="تعداد واحد کل",
+        help_text="تعداد واحدهای مورد نیاز برای فارغ‌التحصیلی"
+    )
+    description = models.TextField(
+        verbose_name="توضیحات",
+        help_text="توضیحات مربوط به رشته",
+        null=True,
+        blank=True
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="فعال",
+        help_text="آیا رشته فعال است؟"
+    )
+
+    class Meta:
+        verbose_name = "رشته تحصیلی"
+        verbose_name_plural = "رشته‌های تحصیلی"
+        ordering = ['college', 'name']
+        unique_together = ['code', 'college']
+
+    def __str__(self):
+        return f"{self.name} - {self.college.name}"
+
+
+class Specialization(models.Model):
+    """
+    جدول گرایش‌های تحصیلی
+    برای ذخیره اطلاعات گرایش‌های مختلف هر رشته
+    """
+    name = models.CharField(
+        max_length=200,
+        verbose_name="نام گرایش",
+        help_text="نام گرایش تحصیلی"
+    )
+    code = models.CharField(
+        max_length=20,
+        verbose_name="کد گرایش",
+        help_text="کد منحصر به فرد گرایش"
+    )
+    field_of_study = models.ForeignKey(
+        FieldOfStudy,
+        on_delete=models.CASCADE,
+        related_name='specializations',
+        verbose_name="رشته",
+        help_text="رشته مربوط به این گرایش"
+    )
+    description = models.TextField(
+        verbose_name="توضیحات",
+        help_text="توضیحات مربوط به گرایش",
+        null=True,
+        blank=True
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="فعال",
+        help_text="آیا گرایش فعال است؟"
+    )
+
+    class Meta:
+        verbose_name = "گرایش"
+        verbose_name_plural = "گرایش‌ها"
+        ordering = ['field_of_study', 'name']
+        unique_together = ['code', 'field_of_study']
+
+    def __str__(self):
+        return f"{self.name} - {self.field_of_study.name}"
+
+
+class Term(models.Model):
+    """
+    جدول ترم‌های تحصیلی
+    برای ذخیره اطلاعات ترم‌های دانشگاه
+    """
+    name = models.CharField(
+        max_length=100,
+        verbose_name="نام ترم",
+        help_text="نام ترم (مثل ترم اول ۱۴۰۳-۱۴۰۴)"
+    )
+    code = models.CharField(
+        max_length=20,
+        unique=True,
+        verbose_name="کد ترم",
+        help_text="کد منحصر به فرد ترم"
+    )
+    start_date = models.CharField(
+        max_length=10,
+        verbose_name="تاریخ شروع (شمسی)",
+        help_text="تاریخ شروع ترم به صورت شمسی"
+    )
+    end_date = models.CharField(
+        max_length=10,
+        verbose_name="تاریخ پایان (شمسی)",
+        help_text="تاریخ پایان ترم به صورت شمسی"
+    )
+    is_current = models.BooleanField(
+        default=False,
+        verbose_name="ترم جاری",
+        help_text="آیا این ترم جاری است؟"
+    )
+    is_registration_open = models.BooleanField(
+        default=False,
+        verbose_name="ثبت‌نام باز است",
+        help_text="آیا ثبت‌نام برای این ترم باز است؟"
+    )
+
+    class Meta:
+        verbose_name = "ترم"
+        verbose_name_plural = "ترم‌ها"
+        ordering = ['-code']
+
+    def __str__(self):
+        return self.name
+
+    def clean(self):
+        """اعتبارسنجی تاریخ‌های ترم"""
+        super().clean()
+        if self.start_date and self.end_date:
+            try:
+                start_parts = self.start_date.split('/')
+                end_parts = self.end_date.split('/')
+                if len(start_parts) != 3 or len(end_parts) != 3:
+                    raise ValidationError('فرمت تاریخ باید YYYY/MM/DD باشد')
+                start_date = jdatetime.date(int(start_parts[0]), int(start_parts[1]), int(start_parts[2]))
+                end_date = jdatetime.date(int(end_parts[0]), int(end_parts[1]), int(end_parts[2]))
+                if start_date >= end_date:
+                    raise ValidationError('تاریخ شروع باید قبل از تاریخ پایان باشد')
+            except (ValueError, AttributeError):
+                raise ValidationError('تاریخ‌های وارد شده معتبر نیستند')
+
+
+class Course(models.Model):
+    """
+    جدول دروس
+    برای ذخیره اطلاعات دروس دانشگاه
+    """
+    name = models.CharField(
+        max_length=200,
+        verbose_name="نام درس",
+        help_text="نام درس"
+    )
+    code = models.CharField(
+        max_length=20,
+        verbose_name="کد درس",
+        help_text="کد منحصر به فرد درس"
+    )
+    field_of_study = models.ForeignKey(
+        FieldOfStudy,
+        on_delete=models.CASCADE,
+        related_name='courses',
+        verbose_name="رشته",
+        help_text="رشته مربوط به این درس"
+    )
+    credits = models.PositiveIntegerField(
+        verbose_name="تعداد واحد",
+        help_text="تعداد واحدهای درس",
+        validators=[MinValueValidator(1), MaxValueValidator(6)]
+    )
+    course_type = models.CharField(
+        max_length=50,
+        verbose_name="نوع درس",
+        help_text="نوع درس (اصلی، اختیاری، عمومی و ...)"
+    )
+    description = models.TextField(
+        verbose_name="توضیحات",
+        help_text="توضیحات مربوط به درس",
+        null=True,
+        blank=True
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="فعال",
+        help_text="آیا درس فعال است؟"
+    )
+
+    class Meta:
+        verbose_name = "درس"
+        verbose_name_plural = "دروس"
+        ordering = ['field_of_study', 'code']
+        unique_together = ['code', 'field_of_study']
+
+    def __str__(self):
+        return f"{self.code} - {self.name}"
+
+
+class CoursePrerequisite(models.Model):
+    """
+    جدول پیش‌نیازهای دروس
+    برای تعریف دروسی که باید قبل از یک درس خاص گذرانده شوند
+    """
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE,
+        related_name='prerequisites',
+        verbose_name="درس",
+        help_text="درسی که پیش‌نیاز دارد"
+    )
+    prerequisite_course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE,
+        related_name='required_for',
+        verbose_name="پیش‌نیاز",
+        help_text="درسی که باید قبل از این درس گذرانده شود"
+    )
+    is_mandatory = models.BooleanField(
+        default=True,
+        verbose_name="اجباری",
+        help_text="آیا این پیش‌نیاز اجباری است؟"
+    )
+
+    class Meta:
+        verbose_name = "پیش‌نیاز درس"
+        verbose_name_plural = "پیش‌نیازهای دروس"
+        unique_together = ['course', 'prerequisite_course']
+
+    def __str__(self):
+        return f"{self.course} نیاز به {self.prerequisite_course}"
+
+    def clean(self):
+        """اعتبارسنجی پیش‌نیاز"""
+        super().clean()
+        if self.course == self.prerequisite_course:
+            raise ValidationError('یک درس نمی‌تواند پیش‌نیاز خودش باشد')
+
+
+class CourseCorequisite(models.Model):
+    """
+    جدول هم‌نیازهای دروس
+    برای تعریف دروسی که باید همزمان با یک درس خاص اخذ شوند
+    """
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE,
+        related_name='corequisites',
+        verbose_name="درس",
+        help_text="درسی که هم‌نیاز دارد"
+    )
+    corequisite_course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE,
+        related_name='corequired_with',
+        verbose_name="هم‌نیاز",
+        help_text="درسی که باید همزمان با این درس اخذ شود"
+    )
+    is_mandatory = models.BooleanField(
+        default=True,
+        verbose_name="اجباری",
+        help_text="آیا این هم‌نیاز اجباری است؟"
+    )
+
+    class Meta:
+        verbose_name = "هم‌نیاز درس"
+        verbose_name_plural = "هم‌نیازهای دروس"
+        unique_together = ['course', 'corequisite_course']
+
+    def __str__(self):
+        return f"{self.course} هم‌نیاز با {self.corequisite_course}"
+
+    def clean(self):
+        """اعتبارسنجی هم‌نیاز"""
+        super().clean()
+        if self.course == self.corequisite_course:
+            raise ValidationError('یک درس نمی‌تواند هم‌نیاز خودش باشد')
+
+
+class Room(models.Model):
+    """
+    جدول اتاق‌ها
+    برای ذخیره اطلاعات اتاق‌های دانشگاه
+    """
+    # Choices برای نوع اتاق
+    ROOM_TYPE_CHOICES = [
+        ('C', 'کلاس'),
+        ('L', 'آزمایشگاه'),
+        ('O', 'سمینار'),
+        ('A', 'آمفی‌تئاتر'),
+    ]
+
+    name = models.CharField(
+        max_length=100,
+        verbose_name="نام اتاق",
+        help_text="نام یا شماره اتاق"
+    )
+    code = models.CharField(
+        max_length=20,
+        unique=True,
+        verbose_name="کد اتاق",
+        help_text="کد منحصر به فرد اتاق"
+    )
+    room_type = models.CharField(
+        max_length=1,
+        choices=ROOM_TYPE_CHOICES,
+        verbose_name="نوع اتاق",
+        help_text="نوع اتاق"
+    )
+    capacity = models.PositiveIntegerField(
+        verbose_name="ظرفیت",
+        help_text="ظرفیت اتاق",
+        validators=[MinValueValidator(1)]
+    )
+    building = models.CharField(
+        max_length=100,
+        verbose_name="ساختمان",
+        help_text="نام ساختمان",
+        null=True,
+        blank=True
+    )
+    floor = models.IntegerField(
+        verbose_name="طبقه",
+        help_text="طبقه اتاق",
+        null=True,
+        blank=True
+    )
+    description = models.TextField(
+        verbose_name="توضیحات",
+        help_text="توضیحات مربوط به اتاق",
+        null=True,
+        blank=True
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="فعال",
+        help_text="آیا اتاق فعال است؟"
+    )
+
+    class Meta:
+        verbose_name = "اتاق"
+        verbose_name_plural = "اتاق‌ها"
+        ordering = ['building', 'name']
+
+    def __str__(self):
+        return f"{self.code} - {self.name}"
+
+
+class Class(models.Model):
+    """
+    جدول کلاس‌ها
+    برای ذخیره اطلاعات کلاس‌های درسی که در یک ترم خاص برگزار می‌شوند
+    """
+    # Choices برای روزهای هفته
+    DAY_CHOICES = [
+        ('SA', 'شنبه'),
+        ('SU', 'یکشنبه'),
+        ('MO', 'دوشنبه'),
+        ('TU', 'سه‌شنبه'),
+        ('WE', 'چهارشنبه'),
+        ('TH', 'پنج‌شنبه'),
+        ('FR', 'جمعه'),
+    ]
+
+    class_code = models.CharField(
+        max_length=50,
+        unique=True,
+        verbose_name="کد کلاس",
+        help_text="کد منحصر به فرد کلاس"
+    )
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE,
+        related_name='classes',
+        verbose_name="درس",
+        help_text="درسی که این کلاس برای آن برگزار می‌شود"
+    )
+    term = models.ForeignKey(
+        Term,
+        on_delete=models.CASCADE,
+        related_name='classes',
+        verbose_name="ترم",
+        help_text="ترمی که این کلاس در آن برگزار می‌شود"
+    )
+    room = models.ForeignKey(
+        Room,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='classes',
+        verbose_name="اتاق",
+        help_text="اتاقی که کلاس در آن برگزار می‌شود"
+    )
+    day_of_week = models.CharField(
+        max_length=2,
+        choices=DAY_CHOICES,
+        verbose_name="روز هفته",
+        help_text="روز هفته برگزاری کلاس"
+    )
+    start_time = models.TimeField(
+        verbose_name="ساعت شروع",
+        help_text="ساعت شروع کلاس"
+    )
+    end_time = models.TimeField(
+        verbose_name="ساعت پایان",
+        help_text="ساعت پایان کلاس"
+    )
+    capacity = models.PositiveIntegerField(
+        verbose_name="ظرفیت",
+        help_text="ظرفیت کلاس",
+        validators=[MinValueValidator(1)]
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="فعال",
+        help_text="آیا کلاس فعال است؟"
+    )
+
+    class Meta:
+        verbose_name = "کلاس"
+        verbose_name_plural = "کلاس‌ها"
+        ordering = ['term', 'course', 'class_code']
+        unique_together = ['class_code', 'term']
+
+    def __str__(self):
+        return f"{self.class_code} - {self.course.name} - {self.term.name}"
+
+    def clean(self):
+        """اعتبارسنجی زمان کلاس"""
+        super().clean()
+        if self.start_time and self.end_time:
+            if self.start_time >= self.end_time:
+                raise ValidationError('ساعت شروع باید قبل از ساعت پایان باشد')
+            
+            # بررسی تداخل زمانی با کلاس‌های دیگر در همان اتاق و روز
+            if self.room and self.day_of_week:
+                conflicting_classes = Class.objects.filter(
+                    room=self.room,
+                    day_of_week=self.day_of_week,
+                    term=self.term,
+                    is_active=True
+                ).exclude(pk=self.pk)
+                
+                for cls in conflicting_classes:
+                    if not (self.end_time <= cls.start_time or self.start_time >= cls.end_time):
+                        raise ValidationError(
+                            f'تداخل زمانی با کلاس {cls.class_code} در اتاق {self.room.name}'
+                        )
+
+    @property
+    def remaining_capacity(self):
+        """محاسبه ظرفیت باقیمانده کلاس"""
+        registered_count = StudentClassRegistration.objects.filter(
+            class_course=self,
+            status__in=['R', 'P', 'F']  # Registered, Passed, Failed
+        ).count()
+        return max(0, self.capacity - registered_count)
+
+    @property
+    def registered_students_list(self):
+        """لیست دانشجویان ثبت‌نام شده در کلاس"""
+        registrations = StudentClassRegistration.objects.filter(
+            class_course=self,
+            status__in=['R', 'P', 'F']
+        ).select_related('student')
+        return [reg.student for reg in registrations]
+
+
+# ============================================
+# جداول رابطه‌ای
+# ============================================
+
+class StudentClassRegistration(models.Model):
+    """
+    جدول ثبت‌نام دانشجویان در کلاس‌ها
+    برای ذخیره اطلاعات ثبت‌نام دانشجو در کلاس و نمره وی
+    """
+    # Choices برای وضعیت ثبت‌نام
+    STATUS_CHOICES = [
+        ('R', 'ثبت‌نام شده'),
+        ('P', 'قبول'),
+        ('F', 'مردود'),
+        ('W', 'حذف'),
+        ('I', 'ناقص'),
+    ]
+
+    student = models.ForeignKey(
+        Student,
+        on_delete=models.CASCADE,
+        related_name='class_registrations',
+        verbose_name="دانشجو",
+        help_text="دانشجویی که در کلاس ثبت‌نام کرده"
+    )
+    class_course = models.ForeignKey(
+        Class,
+        on_delete=models.CASCADE,
+        related_name='student_registrations',
+        verbose_name="کلاس",
+        help_text="کلاسی که دانشجو در آن ثبت‌نام کرده"
+    )
+    registration_date = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="تاریخ ثبت‌نام",
+        help_text="تاریخ و زمان ثبت‌نام"
+    )
+    grade = models.DecimalField(
+        max_digits=4,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name="نمره",
+        help_text="نمره دانشجو در این کلاس",
+        validators=[MinValueValidator(0), MaxValueValidator(20)]
+    )
+    status = models.CharField(
+        max_length=1,
+        choices=STATUS_CHOICES,
+        default='R',
+        verbose_name="وضعیت",
+        help_text="وضعیت ثبت‌نام و نمره دانشجو"
+    )
+    notes = models.TextField(
+        verbose_name="یادداشت",
+        help_text="یادداشت‌های اضافی",
+        null=True,
+        blank=True
+    )
+
+    class Meta:
+        verbose_name = "ثبت‌نام دانشجو در کلاس"
+        verbose_name_plural = "ثبت‌نام‌های دانشجویان"
+        ordering = ['-registration_date']
+        unique_together = ['student', 'class_course']
+
+    def __str__(self):
+        return f"{self.student.student_number} - {self.class_course.class_code}"
+
+    def clean(self):
+        """اعتبارسنجی ثبت‌نام"""
+        super().clean()
+        # بررسی ظرفیت کلاس
+        if self.class_course:
+            registered_count = StudentClassRegistration.objects.filter(
+                class_course=self.class_course,
+                status__in=['R', 'P', 'F']
+            ).exclude(pk=self.pk).count()
+            if registered_count >= self.class_course.capacity:
+                raise ValidationError('ظرفیت کلاس تکمیل شده است')
+        
+        # بررسی نمره
+        if self.grade is not None:
+            if self.grade < 0 or self.grade > 20:
+                raise ValidationError('نمره باید بین 0 تا 20 باشد')
+
+
+class ProfessorCourseAssignment(models.Model):
+    """
+    جدول تخصیص استاد به درس یا کلاس
+    برای تعیین استادی که یک درس یا کلاس را تدریس می‌کند
+    """
+    professor = models.ForeignKey(
+        Professor,
+        on_delete=models.CASCADE,
+        related_name='course_assignments',
+        verbose_name="استاد",
+        help_text="استادی که درس را تدریس می‌کند"
+    )
+    class_course = models.ForeignKey(
+        Class,
+        on_delete=models.CASCADE,
+        related_name='professor_assignments',
+        verbose_name="کلاس",
+        help_text="کلاسی که استاد آن را تدریس می‌کند"
+    )
+    assignment_date = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="تاریخ تخصیص",
+        help_text="تاریخ و زمان تخصیص استاد به کلاس"
+    )
+    is_primary = models.BooleanField(
+        default=True,
+        verbose_name="استاد اصلی",
+        help_text="آیا این استاد استاد اصلی کلاس است؟"
+    )
+    notes = models.TextField(
+        verbose_name="یادداشت",
+        help_text="یادداشت‌های اضافی",
+        null=True,
+        blank=True
+    )
+
+    class Meta:
+        verbose_name = "تخصیص استاد به کلاس"
+        verbose_name_plural = "تخصیص‌های اساتید"
+        ordering = ['-assignment_date']
+        unique_together = ['professor', 'class_course']
+
+    def __str__(self):
+        return f"{self.professor.professor_code} - {self.class_course.class_code}"
+
+    def clean(self):
+        """اعتبارسنجی تخصیص استاد"""
+        super().clean()
+        # بررسی اینکه فقط یک استاد اصلی برای هر کلاس وجود داشته باشد
+        if self.is_primary and self.class_course:
+            primary_assignments = ProfessorCourseAssignment.objects.filter(
+                class_course=self.class_course,
+                is_primary=True
+            ).exclude(pk=self.pk)
+            if primary_assignments.exists():
+                raise ValidationError('فقط یک استاد اصلی برای هر کلاس می‌تواند وجود داشته باشد')
+
+
+# ============================================
+# مدل‌های تکمیلی
+# ============================================
+
+class ProfessorSurvey(models.Model):
+    """
+    جدول نظرسنجی اساتید
+    برای ذخیره نظرات دانشجویان درباره اساتید
+    """
+    # Choices برای رتبه‌بندی
+    RATING_CHOICES = [
+        (1, 'خیلی ضعیف'),
+        (2, 'ضعیف'),
+        (3, 'متوسط'),
+        (4, 'خوب'),
+        (5, 'عالی'),
+    ]
+
+    student = models.ForeignKey(
+        Student,
+        on_delete=models.CASCADE,
+        related_name='professor_surveys',
+        verbose_name="دانشجو",
+        help_text="دانشجویی که نظرسنجی را تکمیل کرده"
+    )
+    professor = models.ForeignKey(
+        Professor,
+        on_delete=models.CASCADE,
+        related_name='surveys',
+        verbose_name="استاد",
+        help_text="استادی که درباره او نظرسنجی شده"
+    )
+    class_course = models.ForeignKey(
+        Class,
+        on_delete=models.CASCADE,
+        related_name='surveys',
+        verbose_name="کلاس",
+        help_text="کلاسی که نظرسنجی برای آن انجام شده"
+    )
+    teaching_quality = models.IntegerField(
+        choices=RATING_CHOICES,
+        verbose_name="کیفیت تدریس",
+        help_text="رتبه کیفیت تدریس استاد"
+    )
+    communication = models.IntegerField(
+        choices=RATING_CHOICES,
+        verbose_name="ارتباط",
+        help_text="رتبه ارتباط استاد با دانشجویان"
+    )
+    punctuality = models.IntegerField(
+        choices=RATING_CHOICES,
+        verbose_name="انضباط زمانی",
+        help_text="رتبه انضباط زمانی استاد"
+    )
+    overall_rating = models.IntegerField(
+        choices=RATING_CHOICES,
+        verbose_name="امتیاز کلی",
+        help_text="امتیاز کلی استاد"
+    )
+    comments = models.TextField(
+        verbose_name="نظرات",
+        help_text="نظرات و پیشنهادات دانشجو",
+        null=True,
+        blank=True
+    )
+    survey_date = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="تاریخ نظرسنجی",
+        help_text="تاریخ و زمان تکمیل نظرسنجی"
+    )
+
+    class Meta:
+        verbose_name = "نظرسنجی استاد"
+        verbose_name_plural = "نظرسنجی‌های اساتید"
+        ordering = ['-survey_date']
+        unique_together = ['student', 'professor', 'class_course']
+
+    def __str__(self):
+        return f"{self.student.student_number} - {self.professor.professor_code} - {self.class_course.class_code}"
+
+    @property
+    def average_rating(self):
+        """محاسبه میانگین امتیازات"""
+        ratings = [
+            self.teaching_quality,
+            self.communication,
+            self.punctuality,
+            self.overall_rating
+        ]
+        return round(sum(ratings) / len(ratings), 2)

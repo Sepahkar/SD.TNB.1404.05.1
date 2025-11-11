@@ -118,7 +118,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'fa'
 
 TIME_ZONE = 'Asia/Tehran'
 
@@ -128,6 +128,11 @@ USE_TZ = True
 
 # تنظیمات اضافی برای timezone
 USE_L10N = True
+
+# تنظیمات پنل ادمین
+ADMIN_SITE_HEADER = "پنل مدیریت سیستم آموزشی"
+ADMIN_SITE_TITLE = "سیستم آموزشی"
+ADMIN_INDEX_TITLE = "پنل مدیریت"
 
 
 # Static files (CSS, JavaScript, Images)
