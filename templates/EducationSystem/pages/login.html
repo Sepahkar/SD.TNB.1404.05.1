@@ -1,35 +1,83 @@
-{% extends "EducationSystem/base.html" %}
-{% load static %}
-
-{% block content %}
+{% extends "EducationSystem/base.html" %} {% load static %} {% block content %}
 <div class="center-box">
+  <form method="POST" id="loginForm" style="text-align: center">
+    {% csrf_token %}
 
-    <!-- آیکون دانشجو
-    <img src="{% static 'EducationSystem/images/student_cap.png' %}"
-         alt="Student Icon"
-         style="width:180px; margin-bottom:30px; opacity:0.85;"> -->
+    <!-- مرحله ۱: شماره دانشجویی -->
+    <div id="step1">
+      <label style="font-size: 16px; font-weight: bold">
+        لطفا شماره دانشجویی خود را وارد کنید:
+      </label>
+      <br />
+      <input
+        type="text"
+        id="student_id"
+        name="student_id"
+        required
+        autocomplete="off"
+      />
+    </div>
 
-    <!-- فرم ورود -->
-    <form method="POST" style="text-align:center;">
-        {% csrf_token %}
+    <br />
 
-        <label style="font-size:16px; font-weight:bold;">
-            لطفا شماره دانشجویی خود را وارد کنید:
-        </label>
-        <br>
-        <input type="text" name="student_id" required>
-        <br><br>
+    <!-- مرحله ۲: پسورد -->
+    <div id="step2" style="display: none; opacity: 0; transition: opacity 0.4s">
+      <label style="font-size: 16px; font-weight: bold">
+        لطفا رمز عبور خود را وارد کنید:
+      </label>
+      <br />
+      <input
+        type="password"
+        id="password"
+        name="password"
+        required
+        autocomplete="off"
+      />
+    </div>
 
-        <label style="font-size:16px; font-weight:bold;">
-            لطفا رمز عبور خود را وارد کنید:
-        </label>
-        <br>
-        <input type="password" name="password" required>
-        <br><br>
+    <br /><br />
 
-        <!-- دکمه ورود -->
-        <button type="submit" class="btn-primary-custom">ورود</button>
-    </form>
-
+    <!-- دکمه ورود -->
+    <button
+      type="submit"
+      id="submitBtn"
+      class="btn-primary-custom"
+      style="display: none; opacity: 0; transition: opacity 0.4s"
+    >
+      ورود
+    </button>
+  </form>
 </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const studentInput = document.getElementById("student_id");
+    const passwordInput = document.getElementById("password");
+    const step2 = document.getElementById("step2");
+    const submitBtn = document.getElementById("submitBtn");
+
+    studentInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+
+        if (studentInput.value.trim() !== "") {
+          step2.style.display = "block";
+          setTimeout(() => (step2.style.opacity = "1"), 10);
+
+          submitBtn.style.display = "inline-block";
+          setTimeout(() => (submitBtn.style.opacity = "1"), 10);
+
+          passwordInput.focus();
+        }
+      }
+    });
+
+    passwordInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        document.getElementById("loginForm").submit();
+      }
+    });
+  });
+</script>
+
 {% endblock %}

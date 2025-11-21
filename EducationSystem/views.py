@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 
 # Create your views here.
 def test(request):
@@ -9,12 +9,11 @@ def welcome(request):
 
 def login_view(request):
     if request.method == "POST":
-        # اینجا بعداً می‌تونی لاجیک ورود را اضافه کنی
         student_id = request.POST.get("student_id")
         password = request.POST.get("password")
 
-        # TODO: اعتبارسنجی – بعداً اضافه می‌کنیم
-        pass
+        # TODO:
+        return redirect("dashboard")
 
     return render(request, "EducationSystem/pages/login.html")
 
