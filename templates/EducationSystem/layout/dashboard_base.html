@@ -36,11 +36,14 @@
     text-decoration: none;
     color: white;
   }
+  .menu-items a:first-child {
+    background: #3425bd;
+  }
 
   .menu-items a:hover {
     background: #b6cee8;
   }
-
+  
   .header-right {
     display: flex;
     align-items: center;
@@ -51,7 +54,14 @@
     background: #2ecc71;
     color: white;
     padding: 6px 14px;
-    border-radius: 14px;
+    border-radius: 20px;
+    font-weight: bold;
+  }
+  .profile-box {
+    background: #3425bd;
+    color: white;
+    padding: 6px 14px;
+    border-radius: 20px;
     font-weight: bold;
   }
 
@@ -71,12 +81,12 @@
       <a href="#">امور مالی</a>
       <a href="#">دروس نیمسال</a>
       <a href="#">کارنامه دانشجویی</a>
-      <a href="#">پروفایل</a>
     </nav>
 
     <!-- بخش چپ | نشان دادن ترم -->
     <div class="header-right">
-      <div class="term-box">{{ term|default:"4041" }}</div>
+      <div class="term-box">{{ name|default:"4041" }}</div>
+      <div class="profile-box">{{ term|default:"پانیذ بهارجاه" }}</div>
 
       <div class="user-box flex items-center">
         <span>{{ request.user.first_name }} {{ request.user.last_name }}</span>

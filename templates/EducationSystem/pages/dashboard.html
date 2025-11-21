@@ -1,39 +1,175 @@
-{% extends "EducationSystem/layout/dashboard_base.html" %}
-
+{% extends "EducationSystem/layout/dashboard_base.html" %} {% load static %} 
 {% block dashboard_content %}
-<div class="dashboard-overview">
-  <!-- نوار پیشرفت -->
-  <!-- <div class="progress-bar flex justify-between items-center mb-6">
-    <div class="flex items-center">
-      <span class="mr-2">72</span>
-      <div class="progress w-32 bg-gray-300 h-2 rounded-full">
-        <div class="progress-filled bg-blue-500 h-2" style="width: 50%"></div>
-      </div>
-    </div>
-    <span>امتیاز: 19.94</span>
-  </div> -->
 
-  <!-- گراف -->
-  <div class="graph">
-    <div id="bar-chart" class="mt-6">
-      <!-- استفاده از کتابخانه گراف‌ها مثل Chart.js برای رسم گراف‌ها -->
+<style>
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    /* gap: 40px; */
+    align-items: start;
+  }
+
+  .circle-btn {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    background: white;
+    box-shadow: 0 0 10px #ddd;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .circle-btn:hover {
+    transform: translateY(-5px);
+  }
+
+  .circle-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+    justify-items: center;
+    max-width: 500px;
+  }
+
+  .bar-chart-box {
+    background: #fff;
+    padding: 25px;
+    border-radius: 16px;
+    box-shadow: 0 0 10px #e2e2e2;
+    max-width: 600px;
+    margin-top: 40px;
+  }
+
+  .progress-path {
+    width: 100%;
+    height: 80px;
+    background: url('{% static "EducationSystem/img/progress_path.png" %}')
+      no-repeat center;
+    background-size: contain;
+  }
+</style>
+
+<div class="dashboard-grid">
+  <!-- ستون سمت راست -->
+  <div class="circle-grid">
+    <div class="flex flex-col items-center">
+      <div class="circle-btn" style="border: 5px solid #8f62ff">
+        <div class="text-purple-500" style="font-size: 30px">72 / 144</div>
+      </div>
+      <div class="mt-3 text-gray-600 text-center text-base font-bold">واحدهای پاس‌شده</div>
+    </div>
+
+    <div class="flex flex-col items-center">
+      <div class="circle-btn" style="border: 5px solid #62a1ff">
+        <img
+          src="{% static 'EducationSystem/img/student_icon.png' %}"
+          width="55"
+        />
+      </div>
+      <div class="mt-3 text-gray-600 text-center text-base font-bold">پروفایل دانشجو</div>
+    </div>
+
+    <div class="flex flex-col items-center">
+      <div class="circle-btn" style="border: 5px solid #8cff62">
+        <img
+          src="{% static 'EducationSystem/img/paper_icon.png' %}"
+          width="55"
+        />
+      </div>
+      <div class="mt-3 text-gray-600 text-center text-base font-bold">برگه انتخاب واحد</div>
+    </div>
+
+    <div class="flex flex-col items-center">
+      <div class="circle-btn" style="border: 5px solid #ff6262">
+        <img
+          src="{% static 'EducationSystem/img/week_icon.png' %}"
+          width="55"
+        />
+      </div>
+      <div class="mt-3 text-gray-600 text-center text-base font-bold">برنامه هفتگی</div>
+    </div>
+
+    <div class="flex flex-col items-center">
+      <div class="circle-btn" style="border: 5px solid #ffb862">
+        <img
+          src="{% static 'EducationSystem/img/megaphone.png' %}"
+          width="50"
+        />
+      </div>
+      <div class="mt-3 text-gray-600 text-center text-base font-bold">اطلاعیه</div>
+    </div>
+
+    <div class="flex flex-col items-center">
+      <div class="circle-btn" style="border: 5px solid #628cff">
+        <img
+          src="{% static 'EducationSystem/img/exam_card.png' %}"
+          width="50"
+        />
+      </div>
+      <div class="mt-3 text-gray-600 text-center text-base font-bold">
+        کارت ورود به جلسه
+      </div>
     </div>
   </div>
 
-  <!-- اطلاعات دیگر -->
-  <!-- <div class="statistics grid grid-cols-3 gap-4 mt-6">
-    <div class="stat-card bg-green-100 p-4 rounded">
-      <h3 class="text-lg">واحدهای پاس‌شده</h3>
-      <p>72 از 144</p>
+  <!-- ستون سمت چپ (محتوا: مسیر + معدل + نمودار) -->
+  <div>
+    <!-- <div class="progress-path mb-12 relative">
+      <div class="absolute right-40 top-6 text-blue-600 font-bold text-xl">
+        72
+      </div>
+    </div> -->
+
+    <div class="flex justify-center my-6">
+      <div
+        style="
+          background: white;
+          box-shadow: 0 0 10px #ddd;
+          padding: 25px;
+          border-radius: 15px;
+          width: 220px;
+          text-align: center;
+        "
+      >
+        <div style="font-weight: bold; font-size: 22px">Score</div>
+        <div style="font-size: 34px; color: #20bf6b; font-weight: bold">
+          19.94
+        </div>
+        <div style="margin-top: 10px; font-size: 15px">معدل دانشجو</div>
+      </div>
     </div>
-    <div class="stat-card bg-blue-100 p-4 rounded">
-      <h3 class="text-lg">پروفایل دانشجو</h3>
-      <p>اطلاعات مربوط به دانشجو</p>
+
+    <div class="bar-chart-box">
+      <canvas id="barChart"></canvas>
     </div>
-    <div class="stat-card bg-yellow-100 p-4 rounded">
-      <h3 class="text-lg">برگه انتخاب واحد</h3>
-      <p>انتخاب واحد جدید</p>
-    </div>
-  </div> -->
+  </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  const ctx = document.getElementById("barChart");
+
+  new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: ["هم ورودی‌ها", "هم رشته‌ها", "دانشکده", "دانشگاه"],
+      datasets: [
+        {
+          data: [62, 42, 22, 10],
+          backgroundColor: ["#ff5252", "#ffca28", "#42a5f5", "#66bb6a"],
+          borderRadius: 10,
+        },
+      ],
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true } },
+    },
+  });
+</script>
 {% endblock %}
