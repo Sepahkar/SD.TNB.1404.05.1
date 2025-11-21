@@ -1,0 +1,35 @@
+{% extends "EducationSystem/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="center-box">
+
+    <!-- آیکون دانشجو
+    <img src="{% static 'EducationSystem/images/student_cap.png' %}"
+         alt="Student Icon"
+         style="width:180px; margin-bottom:30px; opacity:0.85;"> -->
+
+    <!-- فرم ورود -->
+    <form method="POST" style="text-align:center;">
+        {% csrf_token %}
+
+        <label style="font-size:16px; font-weight:bold;">
+            لطفا شماره دانشجویی خود را وارد کنید:
+        </label>
+        <br>
+        <input type="text" name="student_id" required>
+        <br><br>
+
+        <label style="font-size:16px; font-weight:bold;">
+            لطفا رمز عبور خود را وارد کنید:
+        </label>
+        <br>
+        <input type="password" name="password" required>
+        <br><br>
+
+        <!-- دکمه ورود -->
+        <button type="submit" class="btn-primary-custom">ورود</button>
+    </form>
+
+</div>
+{% endblock %}

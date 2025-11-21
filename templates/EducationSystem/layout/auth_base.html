@@ -1,0 +1,22 @@
+{% extends "EducationSystem/base.html" %}
+{% load static %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'EducationSystem/css/auth.css' %}">
+{% endblock %}
+
+{% block body %}
+<div class="auth-wrapper min-h-screen flex items-center justify-center bg-gray-100">
+
+    <div class="auth-card bg-white shadow-lg p-8 rounded-xl w-full max-w-md">
+        <div class="text-center mb-6">
+            <img src="{% static 'EducationSystem/images/logo.png' %}" class="h-16 mx-auto" alt="Logo">
+        </div>
+
+        {% block auth_content %}
+        <!-- محتوای هر صفحه ورود/ثبت‌نام اینجاست -->
+        {% endblock %}
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,83 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>سامانه آموزشیار</title>
+
+    <!-- Bootstrap RTL -->
+    <link rel="stylesheet" href="{% static 'EducationSystem/css/bootstrap.rtl.css' %}">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="{% static 'EducationSystem/css/fontawesome.css' %}">
+    <link rel="stylesheet" href="{% static 'EducationSystem/css/fontawesome.min.css' %}">
+    <link rel="stylesheet" href="{% static 'EducationSystem/css/fontawesome-pro.css' %}">
+    <link rel="stylesheet" href="{% static 'EducationSystem/css/font-awesome.min.css' %}">
+    <link rel="stylesheet" href="{% static 'EducationSystem/css/brands-pro.css' %}">
+    <link rel="stylesheet" href="{% static 'EducationSystem/css/all.css' %}">
+
+    <!-- jQuery Confirm -->
+    <link rel="stylesheet" href="{% static 'EducationSystem/css/jquery-confirm.min.css' %}">
+
+    <!-- CSS اختصاصی هر صفحه -->
+    {% block head %}{% endblock %}
+
+    <style>
+        body {
+            background-color: #f5fdfd;
+            font-family: 'IRANSans', sans-serif;
+        }
+
+        .main-frame {
+            border: 4px solid #A8E6CF;
+            border-radius: 25px;
+            padding: 20px;
+            min-height: calc(100vh - 4px);
+        }
+
+        .btn-primary-custom {
+            background-color: #51c7a4;
+            border: none;
+            color: white;
+            padding: 10px 30px;
+            border-radius: 25px;
+            font-size: 18px;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="number"] {
+            width: 320px;
+            border-radius: 25px;
+            border: 1px solid #a0bfdc;
+            padding: 10px 15px;
+        }
+
+        .center-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+
+<body>
+
+{% block body %}
+<div class="main-frame">
+    {% block content %}{% endblock %}
+</div>
+{% endblock %}
+
+<!-- Scripts سراسری -->
+<script src="{% static 'EducationSystem/js/jquery-3.6.0.js' %}"></script>
+<script src="{% static 'EducationSystem/js/jquery-confirm.min.js' %}"></script>
+<script src="{% static 'EducationSystem/js/fontawesome.js' %}"></script>
+
+<!-- Scripts اختصاصی -->
+{% block scripts %}{% endblock %}
+
+</body>
+</html>

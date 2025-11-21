@@ -1,0 +1,27 @@
+{% extends "EducationSystem/base.html" %}
+
+{% block content %}
+<div class="center-box">
+
+    <h2 style="color:#2f5fa7; margin-bottom: 20px;">
+        دانشگاه آزاد اسلامی
+    </h2>
+
+    <!-- لوگو -->
+    <!-- <img src="{ static 'EducationSystem/images/logo.png' }" 
+         alt="Azad University Logo"
+         style="width:140px; margin-bottom: 40px;" /> -->
+
+    <!-- موج پایین صفحه -->
+    <!-- <div style="width:100%; margin-bottom:40px;">
+        <img src="{ static 'EducationSystem/images/wave.png' }" 
+             style="width:100%; opacity:0.6;">
+    </div> -->
+
+    <!-- دکمه ورود -->
+    <a href="{% url 'login' %}" class="btn-primary-custom" style="text-decoration:none;">
+        <i class="fa fa-user"></i> ورود
+    </a>
+
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "EducationSystem/layout/dashboard_base.html" %}
+
+{% block dashboard_content %}
+<div class="dashboard-overview">
+  <!-- نوار پیشرفت -->
+  <!-- <div class="progress-bar flex justify-between items-center mb-6">
+    <div class="flex items-center">
+      <span class="mr-2">72</span>
+      <div class="progress w-32 bg-gray-300 h-2 rounded-full">
+        <div class="progress-filled bg-blue-500 h-2" style="width: 50%"></div>
+      </div>
+    </div>
+    <span>امتیاز: 19.94</span>
+  </div> -->
+
+  <!-- گراف -->
+  <div class="graph">
+    <div id="bar-chart" class="mt-6">
+      <!-- استفاده از کتابخانه گراف‌ها مثل Chart.js برای رسم گراف‌ها -->
+    </div>
+  </div>
+
+  <!-- اطلاعات دیگر -->
+  <!-- <div class="statistics grid grid-cols-3 gap-4 mt-6">
+    <div class="stat-card bg-green-100 p-4 rounded">
+      <h3 class="text-lg">واحدهای پاس‌شده</h3>
+      <p>72 از 144</p>
+    </div>
+    <div class="stat-card bg-blue-100 p-4 rounded">
+      <h3 class="text-lg">پروفایل دانشجو</h3>
+      <p>اطلاعات مربوط به دانشجو</p>
+    </div>
+    <div class="stat-card bg-yellow-100 p-4 rounded">
+      <h3 class="text-lg">برگه انتخاب واحد</h3>
+      <p>انتخاب واحد جدید</p>
+    </div>
+  </div> -->
+</div>
+{% endblock %}
