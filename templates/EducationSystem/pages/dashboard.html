@@ -1,5 +1,4 @@
-{% extends "EducationSystem/layout/dashboard_base.html" %} {% load static %} 
-{% block dashboard_content %}
+{% extends "EducationSystem/layout/dashboard_base.html" %} {% load static %} {% block dashboard_content %}
 
 <style>
   .dashboard-grid {
@@ -51,62 +50,111 @@
       no-repeat center;
     background-size: contain;
   }
+
+  /* -----------------  Progress Bar Style ----------------- */
+  .progress-wrapper {
+    position: relative;
+    width: 100%;
+    margin: 40px 0;
+  }
+
+  .progress-line {
+    width: 100%;
+    height: 10px;
+    background: #e0e0e0;
+    border-radius: 5px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: #3adb76; /* سبز */
+    transition: width 0.4s;
+  }
+
+  .start-pin {
+    width: 35px;
+    position: absolute;
+    left: -5px;
+    top: -14px;
+  }
+
+  .student-icon {
+    width: 55px;
+    position: absolute;
+    left: calc({{percent}}% - 25px);
+    top: -45px;
+  }
+
+  .student-score {
+    position: absolute;
+    left: calc({{percent}}% - 5px);
+    top: 15px;
+    font-size: 20px;
+    font-weight: bold;
+    color: #3498db;
+  }
+
+  .graduation-icon {
+    width: 55px;
+    position: absolute;
+    right: -10px;
+    top: -45px;
+  }
 </style>
 
 <div class="dashboard-grid">
   <!-- ستون سمت راست -->
   <div class="circle-grid">
     <div class="flex flex-col items-center">
+      <div class="circle-btn" style="border: 5px solid #62a1ff">
+        <img
+          src="{% static '/EducationSystem/images/graduating-student 1.png' %}"
+          width="55"
+        />
+      </div>
+      <div class="mt-3 text-gray-600 text-center text-base font-bold">
+        پروفایل دانشجو
+      </div>
+    </div>
+
+    <div class="flex flex-col items-center">
       <div class="circle-btn" style="border: 5px solid #8f62ff">
         <div class="text-purple-500" style="font-size: 30px">72 / 144</div>
       </div>
-      <div class="mt-3 text-gray-600 text-center text-base font-bold">واحدهای پاس‌شده</div>
-    </div>
-
-    <div class="flex flex-col items-center">
-      <div class="circle-btn" style="border: 5px solid #62a1ff">
-        <img
-          src="{% static 'EducationSystem/img/student_icon.png' %}"
-          width="55"
-        />
+      <div class="mt-3 text-gray-600 text-center text-base font-bold">
+        واحدهای پاس‌شده
       </div>
-      <div class="mt-3 text-gray-600 text-center text-base font-bold">پروفایل دانشجو</div>
-    </div>
-
-    <div class="flex flex-col items-center">
-      <div class="circle-btn" style="border: 5px solid #8cff62">
-        <img
-          src="{% static 'EducationSystem/img/paper_icon.png' %}"
-          width="55"
-        />
-      </div>
-      <div class="mt-3 text-gray-600 text-center text-base font-bold">برگه انتخاب واحد</div>
     </div>
 
     <div class="flex flex-col items-center">
       <div class="circle-btn" style="border: 5px solid #ff6262">
         <img
-          src="{% static 'EducationSystem/img/week_icon.png' %}"
+          src="{% static 'EducationSystem/images/writing 2.png' %}"
           width="55"
         />
       </div>
-      <div class="mt-3 text-gray-600 text-center text-base font-bold">برنامه هفتگی</div>
+      <div class="mt-3 text-gray-600 text-center text-base font-bold">
+        برنامه هفتگی
+      </div>
     </div>
 
     <div class="flex flex-col items-center">
-      <div class="circle-btn" style="border: 5px solid #ffb862">
+      <div class="circle-btn" style="border: 5px solid #8cff62">
         <img
-          src="{% static 'EducationSystem/img/megaphone.png' %}"
-          width="50"
+          src="{% static 'EducationSystem/images/writing 1.png' %}"
+          width="55"
         />
       </div>
-      <div class="mt-3 text-gray-600 text-center text-base font-bold">اطلاعیه</div>
+      <div class="mt-3 text-gray-600 text-center text-base font-bold">
+        برگه انتخاب واحد
+      </div>
     </div>
 
     <div class="flex flex-col items-center">
       <div class="circle-btn" style="border: 5px solid #628cff">
         <img
-          src="{% static 'EducationSystem/img/exam_card.png' %}"
+          src="{% static 'EducationSystem/images/writing 4.png' %}"
           width="50"
         />
       </div>
@@ -114,15 +162,49 @@
         کارت ورود به جلسه
       </div>
     </div>
+
+    <div class="flex flex-col items-center">
+      <div class="circle-btn" style="border: 5px solid #ffb862">
+        <img
+          src="{% static 'EducationSystem/images/writing 3.png' %}"
+          width="50"
+        />
+      </div>
+      <div class="mt-3 text-gray-600 text-center text-base font-bold">
+        اطلاعیه
+      </div>
+    </div>
   </div>
 
   <!-- ستون سمت چپ (محتوا: مسیر + معدل + نمودار) -->
   <div>
-    <!-- <div class="progress-path mb-12 relative">
-      <div class="absolute right-40 top-6 text-blue-600 font-bold text-xl">
-        72
+    <!-- Progress Bar -->
+    <div class="progress-wrapper">
+      <div class="progress-line">
+        <div class="progress-fill" style="width: {{ percent }}%;"></div>
       </div>
-    </div> -->
+
+      <!-- نقطه شروع -->
+      <img
+        src="{% static 'EducationSystem/images/placeholder 1.png' %}"
+        class="start-pin"
+      />
+
+      <!-- آیکون دانشجو -->
+      <img
+        src="{% static 'EducationSystem/images/graduating-student 2.png' %}"
+        class="student-icon"
+      />
+
+      <!-- مقدار پاس شده -->
+      <span class="student-score">{{ passed }}</span>
+
+      <!-- آیکون فارغ التحصیلی -->
+      <img
+        src="{% static 'EducationSystem/images/graduation 1.png' %}"
+        class="graduation-icon"
+      />
+    </div>
 
     <div class="flex justify-center my-6">
       <div

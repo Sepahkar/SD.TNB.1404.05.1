@@ -43,7 +43,7 @@
   .menu-items a:hover {
     background: #b6cee8;
   }
-  
+
   .header-right {
     display: flex;
     align-items: center;
@@ -76,7 +76,13 @@
   <header class="top-header">
     <!-- منوها -->
     <nav class="menu-items">
-      <a href="{% url 'home' %}">خانه</a>
+      <a href="{% url 'home' %}">
+        <img
+          src="{% static 'EducationSystem/images/home white 2.png' %}"
+          alt="خانه"
+          style="width: 20px; vertical-align: middle"
+        />
+      </a>
       <a href="#">انتخاب واحد</a>
       <a href="#">امور مالی</a>
       <a href="#">دروس نیمسال</a>
@@ -86,7 +92,17 @@
     <!-- بخش چپ | نشان دادن ترم -->
     <div class="header-right">
       <div class="term-box">{{ name|default:"4041" }}</div>
-      <div class="profile-box">{{ term|default:"پانیذ بهارجاه" }}</div>
+      <div
+        class="profile-box"
+        style="display: flex; align-items: center; gap: 8px"
+      >
+        <img
+          src="{% static 'EducationSystem/images/person white 2.png' %}"
+          alt="User"
+          style="width: 22px"
+        />
+        <span>{{ term|default:"پانیذ بهارجاه" }}</span>
+      </div>
 
       <div class="user-box flex items-center">
         <span>{{ request.user.first_name }} {{ request.user.last_name }}</span>

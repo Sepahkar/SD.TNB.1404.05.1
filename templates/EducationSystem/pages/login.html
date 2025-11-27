@@ -1,5 +1,29 @@
 {% extends "EducationSystem/base.html" %} {% load static %} {% block content %}
 <div class="center-box">
+  <!-- ایکون دانشجو -->
+  <div
+    style="position: relative; width: 180px; margin: auto; margin-bottom: 30px"
+  >
+    <!-- عکس دایره (پس‌زمینه) -->
+    <img
+      src="{% static '/EducationSystem/images/Ellipse 1.png' %}"
+      style="width: 180px; display: block; opacity: 0.9"
+    />
+
+    <!-- عکس دوم که داخل دایره قرار می‌گیرد -->
+    <img
+      src="{% static '/EducationSystem/images/education white 1.png' %}"
+      style="
+        width: 90px;
+        height: 90px;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      "
+    />
+  </div>
+
   <form method="POST" id="loginForm" style="text-align: center">
     {% csrf_token %}
 
