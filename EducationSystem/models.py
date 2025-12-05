@@ -351,13 +351,45 @@ class Student(Person):
     """
     مدل دانشجو
     از مدل Person ارث می‌برد و اطلاعات خاص دانشجو را شامل می‌شود
+
+    توجه: فیلدهای زیر از Person به ارث می‌رسند:
+    - first_name, last_name (برای نام و نام خانوادگی)
+    - national_id (برای کد ملی)
+    - address (برای آدرس)
+    - gender, marital_status, military_status
+    - birth_date_shamsi, birth_place
+    - created_at, updated_at
     """
+
+    # وضعیت تحصیلی
+    ACADEMIC_STATUS_CHOICES = [
+        ('A', 'فعال'),
+        ('G', 'فارغ‌التحصیل'),
+        ('W', 'انصراف‌داده'),
+        ('S', 'معلق'),
+    ]
+
     student_number = models.CharField(
         max_length=20,
         unique=True,
         verbose_name="شماره دانشجویی",
-        help_text="شماره دانشجویی منحصر به فرد"
+        help_text="شماره دانشجویی منحصر به فرد - باید بزرگتر از 0 باشد",
+        validators=[
+            RegexValidator(
+                regex=r'^\d+$',
+                message='شماره دانشجویی باید فقط شامل اعداد باشد'
+            )
+        ]
     )
+
+    email = models.EmailField(
+        unique=True,
+        null=True,
+        blank=True,
+        verbose_name="ایمیل",
+        help_text="آدرس ایمیل دانشجو (example@domain.com)"
+    )
+
     field_of_study = models.ForeignKey(
         'FieldOfStudy',
         on_delete=models.SET_NULL,
@@ -367,6 +399,7 @@ class Student(Person):
         verbose_name="رشته تحصیلی",
         help_text="رشته تحصیلی دانشجو"
     )
+
     specialization = models.ForeignKey(
         'Specialization',
         on_delete=models.SET_NULL,
@@ -376,16 +409,23 @@ class Student(Person):
         verbose_name="گرایش",
         help_text="گرایش تحصیلی دانشجو"
     )
-    enrollment_date = models.CharField(
-        max_length=10,
-        verbose_name="تاریخ ثبت‌نام (شمسی)",
-        help_text="تاریخ ثبت‌نام در دانشگاه به صورت شمسی"
+
+    enrollment_date = models.DateField(
+        auto_now_add=True,
+        verbose_name="تاریخ ثبت‌نام",
+        help_text="تاریخ ثبت‌نام در دانشگاه (مقدار پیش‌فرض = زمان فعلی)"
     )
-    is_active = models.BooleanField(
-        default=True,
-        verbose_name="فعال",
-        help_text="آیا دانشجو فعال است؟"
+
+    academic_status = models.CharField(
+        max_length=1,
+        choices=ACADEMIC_STATUS_CHOICES,
+        default='A',
+        verbose_name="وضعیت تحصیلی",
+        help_text="وضعیت تحصیلی دانشجو (فعال، فارغ‌التحصیل، انصراف‌داده)"
     )
+
+    # برای دسترسی به شماره موبایل از ContactInfo استفاده کنید
+    # این فیلد اینجا نیست چون در جدول ContactInfo ذخیره می‌شود
 
     class Meta:
         verbose_name = "دانشجو"
@@ -394,6 +434,41 @@ class Student(Person):
 
     def __str__(self):
         return f"{self.student_number} - {self.full_name}"
+
+    def clean(self):
+        """اعتبارسنجی مدل دانشجو"""
+        super().clean()
+
+        # بررسی شماره دانشجویی باید بزرگتر از 0 باشد
+        if self.student_number:
+            if not self.student_number.isdigit():
+                raise ValidationError({
+                    'student_number': 'شماره دانشجویی باید فقط شامل اعداد باشد'
+                })
+            if int(self.student_number) <= 0:
+                raise ValidationError({
+                    'student_number': 'شماره دانشجویی باید بزرگ‌تر از 0 باشد'
+                })
+
+    @property
+    def is_active(self):
+        """آیا دانشجو فعال است؟"""
+        return self.academic_status == 'A'
+
+    @property
+    def mobile_number(self):
+        """دریافت شماره موبایل از جدول ContactInfo"""
+        from django.contrib.contenttypes.models import ContentType
+        try:
+            contact = ContactInfo.objects.get(
+                content_type=ContentType.objects.get_for_model(Student),
+                object_id=self.id,
+                contact_type__name='موبایل',
+                is_primary=True
+            )
+            return contact.value
+        except ContactInfo.DoesNotExist:
+            return None
 
     @property
     def total_credits_passed(self):
@@ -423,7 +498,7 @@ class Student(Person):
         )
         if not registrations.exists():
             return None
-        
+
         total_points = 0
         total_credits = 0
         for reg in registrations:
@@ -432,10 +507,440 @@ class Student(Person):
             if grade is not None:
                 total_points += grade * credits
                 total_credits += credits
-        
+
         return round(total_points / total_credits, 2) if total_credits > 0 else None
 
 
+# ============================================
+# نحوه استفاده صحیح
+# ============================================
+
+"""
+# 1. ابتدا ContactType برای موبایل ایجاد کنید (یکبار)
+ContactType.objects.get_or_create(name='موبایل')
+
+# 2. ایجاد دانشجو
+from django.contrib.contenttypes.models import ContentType
+
+student = Student.objects.create(
+    # فیلدهای از Person
+    first_name="مهرشاد",
+    last_name="شاکری بقا",
+    national_id="1234567890",  # کد ملی 10 رقمی
+    id_number="123",
+    birth_date_shamsi="1380/05/15",
+    birth_place=city_object,
+    gender="M",
+    marital_status="S",
+    address="تهران، خیابان ولیعصر",
+
+    # فیلدهای خاص Student
+    student_number="4001234567",  # عدد صحیح به صورت string
+    email="mehershad@example.com",
+    field_of_study=field_object,
+    specialization=specialization_object,
+    academic_status="A"  # فعال
+    # enrollment_date خودکار ست می‌شود
+)
+
+# 3. اضافه کردن شماره موبایل
+mobile_type = ContactType.objects.get(name='موبایل')
+ContactInfo.objects.create(
+    content_type=ContentType.objects.get_for_model(Student),
+    object_id=student.id,
+    contact_type=mobile_type,
+    value="09123456789",  # باید با 09 شروع شود و 11 رقم باشد
+    is_primary=True
+)
+
+# 4. دسترسی به اطلاعات
+print(student.full_name)  # مهرشاد شاکری بقا
+print(student.national_id)  # 1234567890
+print(student.mobile_number)  # 09123456789
+print(student.email)  # mehershad@example.com
+print(student.is_active)  # True
+print(student.gpa)  # معدل
+"""
+
+
+# ============================================
+# مدل‌های اضافی - حضور و غیاب و پرداخت
+# ============================================
+
+class AttendanceMethod(models.Model):
+    """
+    جدول روش‌های ثبت حضور
+    برای تعریف روش‌های مختلف ثبت حضور (QR، NFC، دستی)
+    """
+    name = models.CharField(
+        max_length=50,
+        unique=True,
+        verbose_name="روش ثبت حضور",
+        help_text="روش ثبت حضور (QR، NFC، دستی)"
+    )
+    description = models.TextField(
+        verbose_name="توضیحات",
+        help_text="توضیحات مربوط به روش ثبت حضور",
+        null=True,
+        blank=True
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="فعال",
+        help_text="آیا این روش فعال است؟"
+    )
+
+    class Meta:
+        verbose_name = "روش ثبت حضور"
+        verbose_name_plural = "روش‌های ثبت حضور"
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class ClassAttendance(models.Model):
+    """
+    جدول حضور و غیاب در کلاس
+    برای ثبت حضور دانشجویان در جلسات کلاس
+    """
+    student = models.ForeignKey(
+        Student,
+        on_delete=models.CASCADE,
+        related_name='attendances',
+        verbose_name="دانشجو",
+        help_text="دانشجویی که حضور او ثبت می‌شود"
+    )
+    class_course = models.ForeignKey(
+        'Class',  # Use string reference
+        on_delete=models.CASCADE,
+        related_name='attendances',
+        verbose_name="کلاس",
+        help_text="کلاسی که حضور در آن ثبت می‌شود"
+    )
+    attendance_time = models.DateTimeField(
+        verbose_name="زمان حضور",
+        help_text="تاریخ و زمان دقیق حضور دانشجو"
+    )
+    attendance_method = models.ForeignKey(
+        AttendanceMethod,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='attendances',
+        verbose_name="روش ثبت حضور",
+        help_text="روش ثبت حضور (QR، NFC، دستی)"
+    )
+    is_approved_by_professor = models.BooleanField(
+        default=False,
+        verbose_name="تایید استاد",
+        help_text="آیا حضور توسط استاد تایید شده است؟"
+    )
+    notes = models.TextField(
+        verbose_name="یادداشت",
+        help_text="یادداشت‌های اضافی",
+        null=True,
+        blank=True
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="تاریخ ثبت",
+        help_text="تاریخ و زمان ثبت رکورد"
+    )
+
+    class Meta:
+        verbose_name = "حضور در کلاس"
+        verbose_name_plural = "حضور و غیاب کلاس‌ها"
+        ordering = ['-attendance_time']
+        unique_together = ['student', 'class_course', 'attendance_time']
+
+    def __str__(self):
+        return f"{self.student.student_number} - {self.class_course.class_code} - {self.attendance_time}"
+
+    def clean(self):
+        """اعتبارسنجی حضور"""
+        super().clean()
+
+        # بررسی اینکه زمان حضور در بازه زمانی کلاس باشد
+        if self.attendance_time and self.class_course:
+            attendance_date = self.attendance_time.date()
+            attendance_time = self.attendance_time.time()
+
+            # بررسی اینکه زمان حضور در محدوده زمان کلاس باشد
+            if not (self.class_course.start_time <= attendance_time <= self.class_course.end_time):
+                raise ValidationError({
+                    'attendance_time': f'زمان حضور باید بین {self.class_course.start_time} تا {self.class_course.end_time} باشد'
+                })
+
+
+class PaymentMethod(models.Model):
+    """
+    جدول روش‌های پرداخت
+    برای تعریف روش‌های مختلف پرداخت (درگاه بانکی، کیف پول، وام)
+    """
+    name = models.CharField(
+        max_length=50,
+        unique=True,
+        verbose_name="روش پرداخت",
+        help_text="روش پرداخت (درگاه بانکی، کیف پول، وام)"
+    )
+    description = models.TextField(
+        verbose_name="توضیحات",
+        help_text="توضیحات مربوط به روش پرداخت",
+        null=True,
+        blank=True
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="فعال",
+        help_text="آیا این روش فعال است؟"
+    )
+
+    class Meta:
+        verbose_name = "روش پرداخت"
+        verbose_name_plural = "روش‌های پرداخت"
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class PaymentStatus(models.Model):
+    """
+    جدول وضعیت‌های پرداخت
+    برای تعریف وضعیت‌های مختلف پرداخت (موفق، ناموفق، در حال پردازش)
+    """
+    name = models.CharField(
+        max_length=50,
+        unique=True,
+        verbose_name="وضعیت پرداخت",
+        help_text="وضعیت پرداخت (موفق، ناموفق، در حال پردازش)"
+    )
+    description = models.TextField(
+        verbose_name="توضیحات",
+        help_text="توضیحات مربوط به وضعیت پرداخت",
+        null=True,
+        blank=True
+    )
+
+    class Meta:
+        verbose_name = "وضعیت پرداخت"
+        verbose_name_plural = "وضعیت‌های پرداخت"
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class TuitionPayment(models.Model):
+    """
+    جدول پرداخت شهریه
+    برای ثبت اطلاعات پرداخت‌های شهریه دانشجویان
+    """
+    student = models.ForeignKey(
+        Student,
+        on_delete=models.CASCADE,
+        related_name='tuition_payments',
+        verbose_name="دانشجو",
+        help_text="دانشجویی که شهریه پرداخت کرده"
+    )
+    amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        verbose_name="مبلغ",
+        help_text="مبلغ پرداختی (تومان)",
+        validators=[MinValueValidator(0)]
+    )
+    payment_date = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="تاریخ پرداخت",
+        help_text="تاریخ و زمان پرداخت (مقدار پیش‌فرض = زمان فعلی)"
+    )
+    payment_method = models.ForeignKey(
+        PaymentMethod,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='payments',
+        verbose_name="روش پرداخت",
+        help_text="روش پرداخت (درگاه بانکی، کیف پول، وام)"
+    )
+    payment_status = models.ForeignKey(
+        PaymentStatus,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='payments',
+        verbose_name="وضعیت پرداخت",
+        help_text="وضعیت پرداخت (موفق، ناموفق، در حال پردازش)"
+    )
+    transaction_code = models.CharField(
+        max_length=50,
+        unique=True,
+        verbose_name="کد تراکنش",
+        help_text="کد منحصر به فرد تراکنش (مثل PAY202510190001)"
+    )
+    term = models.ForeignKey(
+        "Term",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='tuition_payments',
+        verbose_name="ترم",
+        help_text="ترمی که این پرداخت برای آن است"
+    )
+    notes = models.TextField(
+        verbose_name="یادداشت",
+        help_text="یادداشت‌های اضافی",
+        null=True,
+        blank=True
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="تاریخ ایجاد",
+        help_text="تاریخ و زمان ایجاد رکورد"
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name="تاریخ بروزرسانی",
+        help_text="تاریخ و زمان آخرین بروزرسانی"
+    )
+
+    class Meta:
+        verbose_name = "پرداخت شهریه"
+        verbose_name_plural = "پرداخت‌های شهریه"
+        ordering = ['-payment_date']
+
+    def __str__(self):
+        return f"{self.student.student_number} - {self.amount} - {self.transaction_code}"
+
+    def clean(self):
+        """اعتبارسنجی پرداخت"""
+        super().clean()
+
+        # بررسی مبلغ
+        if self.amount is not None and self.amount <= 0:
+            raise ValidationError({'amount': 'مبلغ باید بزرگ‌تر از 0 باشد'})
+
+        # بررسی فرمت کد تراکنش
+        if self.transaction_code:
+            # مثال: PAY202510190001
+            if not self.transaction_code.startswith('PAY'):
+                raise ValidationError({
+                    'transaction_code': 'کد تراکنش باید با PAY شروع شود'
+                })
+
+    @property
+    def is_successful(self):
+        """آیا پرداخت موفق بوده است؟"""
+        if self.payment_status:
+            return self.payment_status.name == 'موفق'
+        return False
+
+
+# ============================================
+# نحوه استفاده
+# ============================================
+
+"""
+# 1. ایجاد داده‌های پایه (یکبار اجرا شود)
+
+# روش‌های ثبت حضور
+AttendanceMethod.objects.get_or_create(name='QR')
+AttendanceMethod.objects.get_or_create(name='NFC')
+AttendanceMethod.objects.get_or_create(name='دستی')
+
+# روش‌های پرداخت
+PaymentMethod.objects.get_or_create(name='درگاه بانکی')
+PaymentMethod.objects.get_or_create(name='کیف پول')
+PaymentMethod.objects.get_or_create(name='وام')
+
+# وضعیت‌های پرداخت
+PaymentStatus.objects.get_or_create(name='موفق')
+PaymentStatus.objects.get_or_create(name='ناموفق')
+PaymentStatus.objects.get_or_create(name='در حال پردازش')
+
+
+# 2. ثبت حضور دانشجو
+from django.utils import timezone
+
+qr_method = AttendanceMethod.objects.get(name='QR')
+attendance = ClassAttendance.objects.create(
+    student=student_obj,
+    class_course=class_obj,
+    attendance_time=timezone.now(),
+    attendance_method=qr_method,
+    is_approved_by_professor=False,
+    notes="حضور با موفقیت ثبت شد"
+)
+
+
+# 3. ثبت پرداخت شهریه
+bank_method = PaymentMethod.objects.get(name='درگاه بانکی')
+success_status = PaymentStatus.objects.get(name='موفق')
+
+payment = TuitionPayment.objects.create(
+    student=student_obj,
+    amount=5000000,  # 5 میلیون تومان
+    payment_method=bank_method,
+    payment_status=success_status,
+    transaction_code='PAY202510190001',
+    term=term_obj,
+    notes="پرداخت شهریه ترم اول"
+)
+
+
+# 4. بررسی حضور دانشجو در یک کلاس
+student_attendances = ClassAttendance.objects.filter(
+    student=student_obj,
+    class_course=class_obj
+)
+print(f"تعداد حضور: {student_attendances.count()}")
+
+
+# 5. محاسبه مجموع پرداخت‌های موفق یک دانشجو
+from django.db.models import Sum
+
+total_paid = TuitionPayment.objects.filter(
+    student=student_obj,
+    payment_status__name='موفق'
+).aggregate(total=Sum('amount'))['total']
+
+print(f"مجموع پرداخت‌ها: {total_paid} تومان")
+
+
+# 6. دریافت لیست دانشجویان غایب در یک کلاس
+from django.db.models import Q
+
+# دانشجویان ثبت‌نام شده
+registered_students = StudentClassRegistration.objects.filter(
+    class_course=class_obj,
+    status__in=['R', 'P']
+).values_list('student_id', flat=True)
+
+# دانشجویان حاضر
+attended_students = ClassAttendance.objects.filter(
+    class_course=class_obj,
+    attendance_time__date=timezone.now().date()
+).values_list('student_id', flat=True)
+
+# دانشجویان غایب
+absent_students = Student.objects.filter(
+    id__in=registered_students
+).exclude(id__in=attended_students)
+
+
+# 7. تایید حضور توسط استاد
+attendance = ClassAttendance.objects.get(id=1)
+attendance.is_approved_by_professor = True
+attendance.save()
+
+
+# 8. جستجوی پرداخت با کد تراکنش
+payment = TuitionPayment.objects.get(transaction_code='PAY202510190001')
+print(f"وضعیت: {payment.payment_status.name}")
+print(f"موفق؟ {payment.is_successful}")
+"""
 class Professor(Person):
     """
     مدل استاد
