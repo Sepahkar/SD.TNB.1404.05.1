@@ -1,22 +1,144 @@
-{% extends "EducationSystem/layout/dashboard_base.html" %}
+{% extends "EducationSystem/layout/dashboard_base.html" %} {% load static %}
 
 {% block dashboard_content %}
-<div class="profile-page p-6">
-  <!-- <div class="profile-card bg-white shadow-md p-6 rounded">
-    <div class="profile-header flex items-center mb-6">
-      <div class="profile-pic bg-gray-400 rounded-full w-24 h-24"></div>
-      <div class="ml-6">
-        <h2 class="text-xl font-semibold">پانیذ بهارجاه</h2>
-        <p>دانشجوی مهندسی کامپیوتر</p>
-      </div>
-    </div>
-    <div class="profile-info">
-      <p><strong>شماره دانشجویی:</strong> 4011111111</p>
-      <p><strong>نام پدر:</strong> علی</p>
-      <p><strong>کد ملی:</strong> 0012345678</p>
-      <p><strong>رشته:</strong> مهندسی کامپیوتر</p>
-      <p><strong>مقطع:</strong> کارشناسی پیوسته</p>
-    </div>
-  </div> -->
-</div>
+
+    <style>
+
+        .profile-card {
+            background: white;
+            border: 3px solid #3b82f6;
+            border-radius: 20px;
+            padding: 40px;
+            position: relative;
+            margin-bottom: 30px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .avatar-container {
+            position: absolute;
+            border: 3px solid #3b82f6;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+
+        .profile-content {
+            margin-top: 80px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .profile-item {
+            display: flex;
+            justify-content: flex-start;
+            gap: 10px;
+        }
+
+        .profile-label {
+            color: #1f2937;
+            font-weight: 600;
+        }
+
+        .profile-value {
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .action-btn:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .profile-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+    </style>
+
+        <div class="profile-card">
+            <div class="avatar-container">
+                <img
+          src="{% static '/EducationSystem/images/graduating-student 1.png' %}"
+          width="55"
+        />
+            </div>
+
+            <div class="profile-content">
+                <div class="profile-item">
+                    <span class="profile-label">نام:</span>
+                    <span class="profile-value">باید</span>
+                </div>
+                <div class="profile-item">
+                    <span class="profile-label">شماره دانشجویی:</span>
+                    <span class="profile-value">401111111111</span>
+                </div>
+                <div class="profile-item">
+                    <span class="profile-label">نام خانوادگی:</span>
+                    <span class="profile-value">بهارجاه</span>
+                </div>
+                <div class="profile-item">
+                    <span class="profile-label">نیمسال ورود دانشجو:</span>
+                    <span class="profile-value">4011</span>
+                </div>
+                <div class="profile-item">
+                    <span class="profile-label">نام پدر:</span>
+                    <span class="profile-value">علی</span>
+                </div>
+                <div class="profile-item">
+                    <span class="profile-label">رشته:</span>
+                    <span class="profile-value">مهندسی کامپیوتر</span>
+                </div>
+                <div class="profile-item">
+                    <span class="profile-label">کد ملی:</span>
+                    <span class="profile-value">0012345678</span>
+                </div>
+                <div class="profile-item">
+                    <span class="profile-label">مقطع:</span>
+                    <span class="profile-value">کارشناسی پیوسته</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="action-btn">کارت ورود به جلسه امتحان</button>
+            <button class="action-btn">اطلاعیه</button>
+            <button class="action-btn">برنامه هفتگی</button>
+            <button class="action-btn">برگه انتخاب واحد</button>
+        </div>
+
 {% endblock %}

@@ -10,6 +10,7 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),    # صفحه لاگین
     path('dashboard/', views.dashboard_view, name='dashboard'),  # صفحه داشبورد
     path('profile/', views.profile_view, name='profile'),        # صفحه پروفایل
+    path('course_selection/', views.course_selection_view, name='course_selection'),        # صفحه پروفایل
         path('loan/', views.loan, name='loan_page'),
 
     ]

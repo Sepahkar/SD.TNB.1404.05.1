@@ -44,6 +44,9 @@ def dashboard_view(request):
 def profile_view(request):
     return render(request, "EducationSystem/pages/profile.html")
 
+def course_selection_view(request):
+    return render(request, "EducationSystem/pages/course_selection.html")
+
 def loan(request):
     ctx = {
         "student": {
