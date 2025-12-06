@@ -44,6 +44,7 @@ def dashboard_view(request):
 def profile_view(request):
     return render(request, "EducationSystem/pages/profile.html")
 
+# صفحه وام
 def loan(request):
     ctx = {
         "student": {
@@ -58,3 +59,7 @@ def loan(request):
         }
     }
     return render(request, "EducationSystem/pages/Loan.html", ctx)
+
+#صفحه مدیریت دانشجویان
+def student_management(request):
+    return render(request, 'EducationSystem/pages/student_management.html')
