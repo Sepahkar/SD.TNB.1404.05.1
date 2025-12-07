@@ -63,3 +63,7 @@ def loan(request):
 #صفحه مدیریت دانشجویان
 def student_management(request):
     return render(request, 'EducationSystem/pages/student_management.html')
+
+#صفحه مدیریت دانشجویان
+def course_management(request):
+    return render(request, 'EducationSystem/pages/course_management.html')

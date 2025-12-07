@@ -12,5 +12,6 @@ urlpatterns = [
     path('profile/', views.profile_view, name='profile'),        # صفحه پروفایل
     path('loan/', views.loan, name='loan_page'),
     path('student-management/', views.student_management, name='student_management'),
+    path('course-management/', views.course_management, name='course_management'),
 ]
     
