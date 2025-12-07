@@ -560,7 +560,7 @@
         code: $("#course-code").val(),
         name: $("#course-name").val(),
         field: $("#field-of-study").val(),
-        credits: $("#credits").val(),
+        credits: parseInt($("#credits").val()), // عددی شدن واحدها
         type: $("#course-type").val(),
         desc: $("#description").val(),
         active: $("#is-active").val() === "true",
