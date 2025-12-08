@@ -47,6 +47,7 @@ def profile_view(request):
 def course_selection_view(request):
     return render(request, "EducationSystem/pages/course_selection.html")
 
+# صفحه وام
 def loan(request):
     ctx = {
         "student": {
@@ -61,3 +62,11 @@ def loan(request):
         }
     }
     return render(request, "EducationSystem/pages/Loan.html", ctx)
+
+#صفحه مدیریت دانشجویان
+def student_management(request):
+    return render(request, 'EducationSystem/pages/student_management.html')
+
+#صفحه مدیریت دانشجویان
+def course_management(request):
+    return render(request, 'EducationSystem/pages/course_management.html')

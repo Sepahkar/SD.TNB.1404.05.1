@@ -1,0 +1,626 @@
+{% extends "EducationSystem/base.html" %} {% block content %}
+
+<style>
+  /* Root Font Scaling */
+  html {
+    font-size: 16px;
+  }
+
+  .container {
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 1.5rem;
+  }
+
+  .header {
+    background: linear-gradient(135deg, #4e54c8 0%, #8f94fb 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 0.9rem;
+    text-align: center;
+    margin-bottom: 2.2rem;
+  }
+
+  .header h1 {
+    font-size: 1.9rem;
+    margin: 0;
+  }
+
+  /* -------- FORM -------- */
+  .form-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 0.9rem;
+    box-shadow: 0 3px 20px rgba(0, 0, 0, 0.08);
+  }
+
+  .form-section h2 {
+    font-size: 1.3rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .form-row {
+    display: flex;
+    flex-direction: column;
+  }
+
+  #course-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.6rem 2.2rem;
+  }
+
+  #course-form label {
+    margin-bottom: 0.4rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #444;
+  }
+
+  #course-form input,
+  #course-form select,
+  #course-form textarea {
+    padding: 0.85rem 1rem;
+    font-size: 1rem;
+    background: #fafafa;
+    border: 1px solid #cfd3d8;
+    border-radius: 0.5rem;
+    transition: 0.2s;
+  }
+
+  #course-form textarea {
+    resize: vertical;
+    height: 7rem;
+  }
+
+  /* Focus */
+  #course-form input:focus,
+  #course-form select:focus,
+  #course-form textarea:focus {
+    background: white;
+    border-color: #7a7fda;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(123, 125, 211, 0.17);
+  }
+
+  #course-form select {
+    max-width: 20rem;
+  }
+
+  #submit-btn,
+  #cancel-btn {
+    grid-column: 1 / 3;
+    padding: 1rem 0;
+    font-size: 1.05rem;
+    margin-top: 0.5rem;
+    border-radius: 0.5rem;
+  }
+
+  .edit-mode {
+    border: 2px solid #ffc107;
+    background: #fff8e1;
+  }
+
+  /* -------- TABLE -------- */
+  .table-section {
+    background: white;
+    padding: 2rem;
+    margin-top: 2.5rem;
+    border-radius: 0.9rem;
+    box-shadow: 0 3px 20px rgba(0, 0, 0, 0.08);
+  }
+
+  .table-section h2 {
+    font-size: 1.3rem;
+  }
+
+  table {
+    width: 100%;
+    margin-top: 1.4rem;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
+
+  th {
+    background: #f0f1f5;
+    padding: 0.9rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    border-bottom: 2px solid #e2e2e2;
+  }
+
+  td {
+    padding: 0.85rem;
+    font-size: 0.95rem;
+    background: #fff;
+    border-bottom: 1px solid #efefef;
+  }
+
+  tr:hover td {
+    background: #f7f7ff;
+  }
+
+  .btn {
+    padding: 0.6rem 1.1rem;
+    font-size: 0.9rem;
+    border-radius: 0.5rem;
+  }
+
+  /* -------- SEARCH BAR -------- */
+  .search-box input {
+    width: 22rem;
+    max-width: 100%;
+    padding: 0.9rem 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+  }
+
+  .search-box input:focus {
+    border-color: #7a7fda;
+    box-shadow: 0 0 0 3px rgba(76, 80, 200, 0.14);
+  }
+
+  /* -------- INLINE TABLES -------- */
+  .inline-section {
+    margin-top: 2rem;
+    background: white;
+    padding: 1.5rem;
+    border-radius: 0.9rem;
+    box-shadow: 0 3px 20px rgba(0, 0, 0, 0.08);
+  }
+
+  /* -------- MESSAGES -------- */
+  .message {
+    padding: 1rem 1.3rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1.4rem;
+    font-size: 1rem;
+    font-weight: 500;
+  }
+
+  .success {
+    background: #d4edda;
+    color: #155724;
+    border-right: 6px solid #28a745;
+  }
+
+  .error {
+    background: #f8d7da;
+    color: #721c24;
+    border-right: 6px solid #dc3545;
+  }
+
+  /* ----------- RESPONSIVE ----------- */
+  @media (max-width: 768px) {
+    .container {
+      padding: 1.2rem;
+    }
+
+    .header h1 {
+      font-size: 1.5rem;
+    }
+
+    #course-form {
+      grid-template-columns: 1fr !important;
+      gap: 1.2rem !important;
+    }
+
+    #submit-btn,
+    #cancel-btn {
+      grid-column: 1 / 2 !important;
+      width: 100%;
+    }
+
+    #course-form label {
+      font-size: 0.95rem;
+    }
+
+    #course-form input,
+    #course-form select,
+    #course-form textarea {
+      font-size: 1rem;
+      padding: 0.9rem;
+    }
+
+    /* فاصله استاندارد بخش‌ها */
+    .form-section,
+    .table-section,
+    .inline-section {
+      padding: 1.2rem;
+    }
+
+    /* جدول اسکرولی */
+    .table-section table,
+    .inline-section table {
+      display: block;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    th,
+    td {
+      font-size: 0.85rem;
+      padding: 0.7rem;
+    }
+
+    .search-box input {
+      width: 100%;
+    }
+
+    .empty-row {
+      text-align: center;
+      padding: 1.3rem !important;
+      font-size: 1rem;
+      color: #666;
+      background: #fff;
+    }
+  }
+</style>
+
+<div class="container">
+  <div class="header">
+    <h1>مدیریت دروس</h1>
+  </div>
+
+  <div id="message-area"></div>
+
+  <!-- FORM -->
+  <div class="form-section" id="form-wrapper">
+    <h2 id="form-title">افزودن درس جدید</h2>
+
+    <form id="course-form">
+      <input type="hidden" id="course-id" />
+
+      <div class="form-row">
+        <label>کد درس *</label>
+        <input type="text" id="course-code" required />
+      </div>
+
+      <div class="form-row">
+        <label>نام درس *</label>
+        <input type="text" id="course-name" required />
+      </div>
+
+      <div class="form-row">
+        <label>رشته *</label>
+        <select id="field-of-study" required></select>
+      </div>
+
+      <div class="form-row">
+        <label>تعداد واحد *</label>
+        <input type="number" id="credits" min="1" max="6" required />
+      </div>
+
+      <div class="form-row">
+        <label>نوع درس *</label>
+        <input type="text" id="course-type" required />
+      </div>
+
+      <div class="form-row" style="grid-column: 1 / 3">
+        <label>توضیحات</label>
+        <textarea id="description"></textarea>
+      </div>
+
+      <div class="form-row">
+        <label>وضعیت</label>
+        <select id="is-active">
+          <option value="true">فعال</option>
+          <option value="false">غیرفعال</option>
+        </select>
+      </div>
+
+      <button class="btn btn-primary" id="submit-btn" type="submit">
+        ثبت درس
+      </button>
+      <button
+        class="btn btn-warning"
+        id="cancel-btn"
+        type="button"
+        style="display: none"
+      >
+        انصراف
+      </button>
+    </form>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-section">
+    <h2>لیست دروس</h2>
+
+    <div class="filter-box">
+      <div class="search-box">
+        <input
+          id="search-input"
+          type="text"
+          placeholder="جستجو بر اساس نام، کد یا رشته..."
+        />
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>کد درس</th>
+          <th>نام</th>
+          <th>رشته</th>
+          <th>واحد</th>
+          <th>نوع درس</th>
+          <th>تعداد کلاس‌ها</th>
+          <th>فعال</th>
+          <th>عملیات</th>
+        </tr>
+      </thead>
+      <tbody id="course-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- INLINES -->
+  <div class="inline-section">
+    <h2>پیش‌نیازها</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>درس</th>
+          <th>پیش‌نیاز</th>
+          <th>اجباری</th>
+        </tr>
+      </thead>
+      <tbody id="prereq-tbody"></tbody>
+    </table>
+  </div>
+
+  <div class="inline-section">
+    <h2>هم‌نیازها</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>درس</th>
+          <th>هم‌نیاز</th>
+          <th>اجباری</th>
+        </tr>
+      </thead>
+      <tbody id="coreq-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // ذخیره رشته‌ها در localStorage در صورت نبودن
+    if (!localStorage.getItem("fields")) {
+      const defaultFields = [
+        "مهندسی کامپیوتر",
+        "علوم کامپیوتر",
+        "مهندسی برق",
+        "مهندسی صنایع",
+        "مهندسی مکانیک",
+        "مهندسی عمران",
+        "مهندسی پزشکی",
+        "ریاضیات و کاربردها",
+        "فیزیک",
+        "شیمی",
+        "زیست‌شناسی",
+        "مدیریت بازرگانی",
+        "حسابداری",
+        "روان‌شناسی",
+        "حقوق",
+        "علوم سیاسی",
+        "معماری",
+        "هنرهای دیجیتال",
+      ];
+      localStorage.setItem("fields", JSON.stringify(defaultFields));
+    }
+
+    // پر کردن دراپ‌داون رشته‌ها
+    function populateFieldsDropdown() {
+      const select = document.getElementById("field-of-study");
+      const fields = JSON.parse(localStorage.getItem("fields")) || [];
+      select.innerHTML = "";
+
+      fields.forEach((f) => {
+        const option = document.createElement("option");
+        option.value = f;
+        option.textContent = f;
+        select.appendChild(option);
+      });
+    }
+
+    populateFieldsDropdown();
+
+    // دریافت داده‌ها از localStorage
+    let courses = JSON.parse(localStorage.getItem("courses")) || [];
+    let prereqs = JSON.parse(localStorage.getItem("prereqs")) || [];
+    let coreqs = JSON.parse(localStorage.getItem("coreqs")) || [];
+    let editMode = false;
+    let editId = null;
+
+    function showMessage(msg, type = "success") {
+      $("#message-area").html(`<div class="message ${type}">${msg}</div>`);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      setTimeout(() => $("#message-area").html(""), 4000);
+    }
+
+    function renderCourses(list = courses) {
+      const tbody = $("#course-tbody");
+      tbody.empty();
+
+      if (list.length === 0) {
+        tbody.html(renderEmptyRow(8));
+        return;
+      }
+
+      list.forEach((c) => {
+        tbody.append(`
+            <tr>
+              <td>${c.code}</td>
+              <td>${c.name}</td>
+              <td>${c.field}</td>
+              <td>${c.credits}</td>
+              <td>${c.type}</td>
+              <td>${c.classes_count}</td>
+              <td>
+                <span class="${c.active ? "badge-active" : "badge-inactive"}">
+                  ${c.active ? "فعال" : "غیرفعال"}
+                </span>
+              </td>
+              <td>
+                <button class="btn btn-warning" onclick="editCourse(${
+                  c.id
+                })">ویرایش</button>
+                <button class="btn btn-danger" onclick="deleteCourse(${
+                  c.id
+                })">حذف</button>
+              </td>
+            </tr>
+          `);
+      });
+    }
+
+    function renderEmptyRow(colspan) {
+      return `
+          <tr>
+            <td colspan="${colspan}" class="empty-row">
+              داده‌ای یافت نشد.
+            </td>
+          </tr>
+        `;
+    }
+
+    function renderPrereqs() {
+      const tbody = $("#prereq-tbody");
+      tbody.empty();
+
+      if (prereqs.length === 0) {
+        tbody.html(renderEmptyRow(3));
+        return;
+      }
+
+      prereqs.forEach((p) => {
+        tbody.append(`
+            <tr>
+              <td>${p.course}</td>
+              <td>${p.prereq}</td>
+              <td>${p.required ? "بله" : "خیر"}</td>
+            </tr>
+          `);
+      });
+    }
+
+    function renderCoreqs() {
+      const tbody = $("#coreq-tbody");
+      tbody.empty();
+
+      if (coreqs.length === 0) {
+        tbody.html(renderEmptyRow(3));
+        return;
+      }
+
+      coreqs.forEach((p) => {
+        tbody.append(`
+            <tr>
+              <td>${p.course}</td>
+              <td>${p.coreq}</td>
+              <td>${p.required ? "بله" : "خیر"}</td>
+            </tr>
+          `);
+      });
+    }
+
+    function resetForm() {
+      $("#course-form")[0].reset();
+      editMode = false;
+      editId = null;
+      $("#form-wrapper").removeClass("edit-mode");
+      $("#form-title").text("افزودن درس جدید");
+      $("#submit-btn").text("ثبت درس");
+      $("#cancel-btn").hide();
+    }
+
+    $("#search-input").on("keyup", function () {
+      const term = $(this).val().toLowerCase();
+      const filtered = courses.filter(
+        (c) =>
+          c.name.toLowerCase().includes(term) ||
+          c.code.includes(term) ||
+          c.field.toLowerCase().includes(term)
+      );
+      renderCourses(filtered);
+    });
+
+    $("#cancel-btn").on("click", resetForm);
+
+    $("#course-form").on("submit", function (e) {
+      e.preventDefault();
+
+      const data = {
+        id: editMode ? editId : Date.now(),
+        code: $("#course-code").val(),
+        name: $("#course-name").val(),
+        field: $("#field-of-study").val(),
+        credits: parseInt($("#credits").val()), // عددی شدن واحدها
+        type: $("#course-type").val(),
+        desc: $("#description").val(),
+        active: $("#is-active").val() === "true",
+        classes_count: 0,
+      };
+
+      if (editMode) {
+        const i = courses.findIndex((c) => c.id === editId);
+        courses[i] = data;
+        showMessage("درس با موفقیت بروزرسانی شد");
+      } else {
+        courses.push(data);
+        showMessage("درس جدید ثبت شد");
+      }
+
+      localStorage.setItem("courses", JSON.stringify(courses));
+      renderCourses();
+      resetForm();
+    });
+
+    window.editCourse = function (id) {
+      const c = courses.find((x) => x.id === id);
+
+      $("#course-id").val(c.id);
+      $("#course-code").val(c.code);
+      $("#course-name").val(c.name);
+      $("#field-of-study").val(c.field);
+      $("#credits").val(c.credits);
+      $("#course-type").val(c.type);
+      $("#description").val(c.desc);
+      $("#is-active").val(c.active ? "true" : "false");
+
+      editMode = true;
+      editId = id;
+      $("#form-wrapper").addClass("edit-mode");
+
+      $("#form-title").text("ویرایش درس");
+      $("#submit-btn").text("بروزرسانی");
+      $("#cancel-btn").show();
+
+      document.getElementById("form-wrapper").scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    };
+
+    window.deleteCourse = function (id) {
+      if (!confirm("آیا از حذف این درس مطمئن هستید؟")) return;
+      courses = courses.filter((c) => c.id !== id);
+      localStorage.setItem("courses", JSON.stringify(courses));
+      renderCourses();
+      showMessage("درس حذف شد");
+      resetForm();
+    };
+
+    // رندر اولیه
+    renderCourses();
+    renderPrereqs();
+    renderCoreqs();
+  });
+</script>
+
+{% endblock %}
