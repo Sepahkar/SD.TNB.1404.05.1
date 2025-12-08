@@ -76,14 +76,14 @@
   <header class="top-header">
     <!-- منوها -->
     <nav class="menu-items">
-      <a href="{% url 'home' %}">
+      <a href="{% url 'dashboard' %}">
         <img
           src="{% static 'EducationSystem/images/home white 2.png' %}"
           alt="خانه"
           style="width: 20px; vertical-align: middle"
         />
       </a>
-      <a href="#">انتخاب واحد</a>
+      <a href="{% url 'course_selection' %}">انتخاب واحد</a>
       <a href="#">امور مالی</a>
       <a href="#">دروس نیمسال</a>
       <a href="#">کارنامه دانشجویی</a>
