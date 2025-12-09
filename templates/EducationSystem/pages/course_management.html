@@ -430,12 +430,46 @@
 
     populateFieldsDropdown();
 
-    // دریافت داده‌ها از localStorage
-    let courses = JSON.parse(localStorage.getItem("courses")) || [];
+    // دریافت داده‌ها از localStorage (برای پیش‌نیازها و هم‌نیازها)
+    let courses = [];
     let prereqs = JSON.parse(localStorage.getItem("prereqs")) || [];
     let coreqs = JSON.parse(localStorage.getItem("coreqs")) || [];
     let editMode = false;
     let editId = null;
+
+    // تابع برای دریافت دروس از API
+    async function fetchCoursesFromAPI(searchTerm = "") {
+      try {
+        let url = "/api/courses/provided";
+        if (searchTerm) {
+          url += `?course_name=${encodeURIComponent(searchTerm)}`;
+        }
+        
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data.results) {
+          // تبدیل فرمت API به فرمت مورد نیاز UI
+          courses = data.results.map(course => ({
+            id: parseInt(course.course_id),
+            code: course.course_id, // استفاده از ID به عنوان کد موقت
+            name: course.name_course,
+            field: "از API", // نشان می‌دهد که از API آمده
+            credits: 0,
+            type: "از API",
+            desc: "",
+            active: true,
+            classes_count: 0
+          }));
+          return courses;
+        }
+        return [];
+      } catch (error) {
+        console.error("خطا در دریافت دروس:", error);
+        showMessage("خطا در دریافت اطلاعات از سرور", "error");
+        return [];
+      }
+    }
 
     function showMessage(msg, type = "success") {
       $("#message-area").html(`<div class="message ${type}">${msg}</div>`);
@@ -443,10 +477,15 @@
       setTimeout(() => $("#message-area").html(""), 4000);
     }
 
-    function renderCourses(list = courses) {
+    async function renderCourses(searchTerm = "") {
       const tbody = $("#course-tbody");
       tbody.empty();
+      tbody.html('<tr><td colspan="8" style="text-align:center; padding: 2rem;">⏳ در حال بارگذاری از API...</td></tr>');
 
+      // دریافت داده‌ها از API
+      const list = await fetchCoursesFromAPI(searchTerm);
+
+      tbody.empty();
       if (list.length === 0) {
         tbody.html(renderEmptyRow(8));
         return;
@@ -539,15 +578,14 @@
       $("#cancel-btn").hide();
     }
 
+    // جستجو با تاخیر برای بهینه‌سازی درخواست‌های API
+    let searchTimeout;
     $("#search-input").on("keyup", function () {
-      const term = $(this).val().toLowerCase();
-      const filtered = courses.filter(
-        (c) =>
-          c.name.toLowerCase().includes(term) ||
-          c.code.includes(term) ||
-          c.field.toLowerCase().includes(term)
-      );
-      renderCourses(filtered);
+      const term = $(this).val();
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        renderCourses(term); // ارسال به API
+      }, 500); // تاخیر 500 میلی‌ثانیه برای کاهش درخواست‌ها
     });
 
     $("#cancel-btn").on("click", resetForm);
@@ -567,17 +605,10 @@
         classes_count: 0,
       };
 
-      if (editMode) {
-        const i = courses.findIndex((c) => c.id === editId);
-        courses[i] = data;
-        showMessage("درس با موفقیت بروزرسانی شد");
-      } else {
-        courses.push(data);
-        showMessage("درس جدید ثبت شد");
-      }
-
-      localStorage.setItem("courses", JSON.stringify(courses));
-      renderCourses();
+      // نکته: در حال حاضر API فقط خواندن دارد
+      // برای ذخیره‌سازی واقعی باید API های POST/PUT اضافه شوند
+      showMessage("⚠️ توجه: قابلیت ذخیره‌سازی در API هنوز پیاده‌سازی نشده است. API فقط برای خواندن دروس است.", "error");
+      
       resetForm();
     });
 
@@ -609,15 +640,14 @@
 
     window.deleteCourse = function (id) {
       if (!confirm("آیا از حذف این درس مطمئن هستید؟")) return;
-      courses = courses.filter((c) => c.id !== id);
-      localStorage.setItem("courses", JSON.stringify(courses));
-      renderCourses();
-      showMessage("درس حذف شد");
+      // نکته: در حال حاضر API فقط خواندن دارد
+      // برای حذف واقعی باید API DELETE اضافه شود
+      showMessage("⚠️ توجه: قابلیت حذف در API هنوز پیاده‌سازی نشده است. API فقط برای خواندن دروس است.", "error");
       resetForm();
     };
 
-    // رندر اولیه
-    renderCourses();
+    // رندر اولیه - دریافت از API
+    renderCourses(); // داده‌ها از API بارگذاری می‌شوند
     renderPrereqs();
     renderCoreqs();
   });
