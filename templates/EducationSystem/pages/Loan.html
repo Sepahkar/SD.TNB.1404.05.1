@@ -69,15 +69,14 @@
         <span class="label">موضوع درخواست :</span>
         <select id="requestSubject" class="select">
           <option value="-----">-----</option>
-          <option value="facility">تسهیلات</option>
+          <option value="student">وام دانشجویی</option>
+          <option value="tuition">وام شهریه</option>
         </select>
       </div>
       <div class="field-group">
         <span class="label">طبقه بندی موضوع درخواست :</span>
         <select id="facilityClass" class="select">
           <option value="-----">-----</option>
-          <option value="long">شهریه - بلند مدت</option>
-          <option value="short">شهریه - کوتاه مدت</option>
         </select>
       </div>
       <div class="field-group">
@@ -147,6 +146,20 @@
   const hintModal=document.getElementById('hintModal')
   const closeHint=document.getElementById('closeHint')
   function clearInvalid(){ amtEl.classList.remove('invalid'); subjectEl.classList.remove('invalid'); clsEl.classList.remove('invalid'); upBtn.classList.remove('invalid') }
+
+  function renderClassOptions(s){
+    while(clsEl.firstChild){ clsEl.removeChild(clsEl.firstChild) }
+    function addOption(val, txt){ var o=document.createElement('option'); o.value=val; o.textContent=txt; clsEl.appendChild(o) }
+    addOption('-----','-----')
+    if(s==='student'){
+      addOption('long','شهریه - بلند مدت')
+      addOption('short','شهریه - کوتاه مدت')
+    } else if(s==='tuition'){
+      addOption('long','اقساط بلند مدت')
+      addOption('short','اقساط کوتاه مدت')
+    }
+    clsEl.value='-----'
+  }
   upBtn.addEventListener('click',function(){fileEl.click()})
   rmBtn.addEventListener('click',function(){
     fileEl.value=''
@@ -183,7 +196,7 @@
     const c=clampAmountOnBlur(n)
     this.value=nf(c)
   })
-  subjectEl.addEventListener('change',function(){ this.classList.remove('invalid') })
+  subjectEl.addEventListener('change',function(){ this.classList.remove('invalid'); renderClassOptions(this.value) })
   clsEl.addEventListener('change',function(){ this.classList.remove('invalid') })
   clsEl.addEventListener('mousedown',function(e){
     if(subjectEl.value==='-----'){
@@ -231,15 +244,17 @@
     if(noData) body.removeChild(noData)
     const row=document.createElement('div')
     row.className='table-row'
-    const subjectTxt = s==='facility'?'تسهیلات':'---'
-    const clsTxt = c==='long'?'شهریه - بلند مدت':(c==='short'?'شهریه - کوتاه مدت':'---')
+    const subjectTxt = s==='student'?'وام دانشجویی':(s==='tuition'?'وام شهریه':'---')
+    let clsTxt='---'
+    if(c==='long') clsTxt = (s==='tuition'?'اقساط بلند مدت':'شهریه - بلند مدت')
+    else if(c==='short') clsTxt = (s==='tuition'?'اقساط کوتاه مدت':'شهریه - کوتاه مدت')
     const fileName = (fileEl.files && fileEl.files[0]) ? fileEl.files[0].name : '---'
     const cells=[subjectTxt, clsTxt, nf(n), fileName, 'در انتظار تایید']
     cells.forEach(function(t){ const d=document.createElement('div'); d.textContent=t; row.appendChild(d) })
     body.appendChild(row)
     amtEl.value=''
     subjectEl.value='-----'
-    clsEl.value='-----'
+    renderClassOptions('-----')
     fileEl.value=''
     upBtn.textContent='آپلود'
     rmBtn.style.display='none'
