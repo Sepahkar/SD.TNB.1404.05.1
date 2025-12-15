@@ -1,4 +1,5 @@
-{% extends "EducationSystem/layout/dashboard_base.html" %} {% load static %} {% block dashboard_content %}
+{% extends "EducationSystem/layout/dashboard_base.html" %} {% load static %} {%
+block dashboard_content %}
 
 <style>
   .dashboard-grid {
@@ -105,7 +106,10 @@
 
 <div class="dashboard-grid">
   <div class="circle-grid">
-    <a href="{%url 'profile' %}" class="flex flex-col items-center text-gray-600 text-decoration-none">
+    <a
+      href="{%url 'profile' %}"
+      class="flex flex-col items-center text-gray-600 text-decoration-none"
+    >
       <div class="circle-btn" style="border: 5px solid #62a1ff">
         <img
           src="{% static '/EducationSystem/images/graduating-student 1.png' %}"
@@ -119,7 +123,9 @@
 
     <div class="flex flex-col items-center">
       <div class="circle-btn" style="border: 5px solid #8f62ff">
-        <div class="text-purple-500" style="font-size: 30px">72 / 144</div>
+        <div class="text-purple-500" style="font-size: 30px" id="units-display">
+          0 / 0
+        </div>
       </div>
       <div class="mt-3 text-gray-600 text-center text-base font-bold">
         واحدهای پاس‌شده
@@ -180,7 +186,11 @@
     <!-- Progress Bar -->
     <div class="progress-wrapper">
       <div class="progress-line">
-        <div class="progress-fill" style="width: {{ percent }}%;"></div>
+        <div
+          class="progress-fill"
+          id="progress-fill"
+          style="width: {{ percent|default:0 }}%;"
+        ></div>
       </div>
 
       <!-- نقطه شروع -->
@@ -193,10 +203,11 @@
       <img
         src="{% static 'EducationSystem/images/graduating-student 2.png' %}"
         class="student-icon"
+        id="student-icon"
       />
 
       <!-- مقدار پاس شده -->
-      <span class="student-score">{{ passed }}</span>
+      <span class="student-score" id="passed-units">{{ passed }}</span>
 
       <!-- آیکون فارغ التحصیلی -->
       <img
@@ -217,8 +228,11 @@
         "
       >
         <div style="font-weight: bold; font-size: 22px">Score</div>
-        <div style="font-size: 34px; color: #20bf6b; font-weight: bold">
-          19.94
+        <div
+          style="font-size: 34px; color: #20bf6b; font-weight: bold"
+          id="gpa-display"
+        >
+          {{ gpa|default:"0.00" }}
         </div>
         <div style="margin-top: 10px; font-size: 15px">معدل دانشجو</div>
       </div>
@@ -233,24 +247,76 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-  const ctx = document.getElementById("barChart");
+  // AJAX call to fetch dashboard data
+  function loadDashboardData() {
+    fetch("/api/student/dashboard/", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "same-origin",
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        // Update units display
+        document.getElementById(
+          "units-display"
+        ).textContent = `${data.passedUnits} / ${data.totalUnits}`;
 
-  new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels: ["هم ورودی‌ها", "هم رشته‌ها", "دانشکده", "دانشگاه"],
-      datasets: [
-        {
-          data: [10, 22, 42, 62],
-          backgroundColor: ["#ff5252", "#ffca28", "#42a5f5", "#66bb6a"],
-          borderRadius: 10,
-        },
-      ],
-    },
-    options: {
-      plugins: { legend: { display: false } },
-      scales: { y: { beginAtZero: true } },
-    },
+        // Update passed units
+        document.getElementById("passed-units").textContent = data.passedUnits;
+
+        // Update GPA
+        document.getElementById("gpa-display").textContent =
+          data.gpa.toFixed(2);
+
+        // Update progress bar
+        const percent = (data.passedUnits / data.totalUnits) * 100;
+        document.getElementById("progress-fill").style.width = percent + "%";
+        document.getElementById(
+          "student-icon"
+        ).style.left = `calc(${percent}% - 25px)`;
+        document.getElementById(
+          "passed-units"
+        ).style.left = `calc(${percent}% - 5px)`;
+
+        // Update chart
+        if (window.dashboardChart) {
+          window.dashboardChart.destroy();
+        }
+
+        const ctx = document.getElementById("barChart");
+        window.dashboardChart = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: ["هم ورودی‌ها", "هم رشته‌ها", "دانشکده", "دانشگاه"],
+            datasets: [
+              {
+                data: [
+                  data.comparisonChart.sameEntranceAvg,
+                  data.comparisonChart.sameMajorAvg,
+                  data.comparisonChart.sameFacultyAvg,
+                  data.comparisonChart.universityAvg,
+                ],
+                backgroundColor: ["#ff5252", "#ffca28", "#42a5f5", "#66bb6a"],
+                borderRadius: 10,
+              },
+            ],
+          },
+          options: {
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } },
+          },
+        });
+      })
+      .catch((error) => {
+        console.error("Error loading dashboard data:", error);
+      });
+  }
+
+  // Load data on page load
+  document.addEventListener("DOMContentLoaded", function () {
+    loadDashboardData();
   });
 </script>
 {% endblock %}

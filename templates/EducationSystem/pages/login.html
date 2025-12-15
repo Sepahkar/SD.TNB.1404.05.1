@@ -63,13 +63,19 @@
 
     <!-- دکمه ورود -->
     <button
-      type="submit"
+      type="button"
       id="submitBtn"
       class="btn-primary-custom"
       style="display: none; opacity: 0; transition: opacity 0.4s"
     >
       ورود
     </button>
+
+    <!-- Error message -->
+    <div
+      id="error-message"
+      style="color: red; margin-top: 10px; display: none"
+    ></div>
   </form>
 </div>
 
@@ -98,9 +104,64 @@
 
     passwordInput.addEventListener("keydown", function (e) {
       if (e.key === "Enter") {
-        document.getElementById("loginForm").submit();
+        handleLogin();
       }
     });
+
+    // AJAX login function
+    function handleLogin() {
+      const studentId = studentInput.value.trim();
+      const password = passwordInput.value.trim();
+      const errorMessage = document.getElementById("error-message");
+
+      if (!studentId || !password) {
+        errorMessage.textContent = "لطفا تمام فیلدها را پر کنید";
+        errorMessage.style.display = "block";
+        return;
+      }
+
+      // Show loading
+      submitBtn.disabled = true;
+      submitBtn.textContent = "در حال ورود...";
+      errorMessage.style.display = "none";
+
+      // AJAX call to login API
+      fetch("/api/auth/login/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]")
+            .value,
+        },
+        body: JSON.stringify({
+          studentId: studentId,
+          password: password,
+        }),
+        credentials: "same-origin",
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.token) {
+            // Store token in localStorage (optional)
+            localStorage.setItem("auth_token", data.token);
+
+            // Redirect to dashboard
+            window.location.href = "/dashboard/";
+          } else {
+            throw new Error(data.detail || "خطا در ورود");
+          }
+        })
+        .catch((error) => {
+          console.error("Login error:", error);
+          errorMessage.textContent =
+            error.message || "نام کاربری یا رمز عبور اشتباه است";
+          errorMessage.style.display = "block";
+          submitBtn.disabled = false;
+          submitBtn.textContent = "ورود";
+        });
+    }
+
+    submitBtn.addEventListener("click", handleLogin);
   });
 </script>
 

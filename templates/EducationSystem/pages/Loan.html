@@ -1,51 +1,226 @@
-{% extends "EducationSystem/layout/dashboard_base.html" %}
-{% block dashboard_content %}
+{% extends "EducationSystem/layout/dashboard_base.html" %} {% block
+dashboard_content %}
 
 <style>
-  .loan-container { padding: 10px; }
-  .panel { background: #abd5f5; border-radius: 25px; padding: 15px 20px; border: 2px solid #8fc0dd; }
-  .panel-title { text-align: center; font-weight: bold; margin-bottom: 10px; }
-  .student-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-  .student-item { background: #8fc0dd; border-radius: 15px; padding: 8px 12px; }
-  .table-panel { margin-top: 15px; }
-  .table-header { display: grid; grid-template-columns: 1.2fr 1.2fr 1fr 1fr 0.8fr; gap: 6px; }
-  .table-header > div { background: #8fc0dd; border-radius: 18px; padding: 8px 12px; text-align: center; }
-  .table-body { margin-top: 8px; display: flex; flex-direction: column; gap: 8px; }
-  .table-row { background: #bfd9ea; border-radius: 18px; padding: 12px; display: grid; grid-template-columns: 1.2fr 1.2fr 1fr 1fr 0.8fr; text-align: center; gap: 6px; }
-  .no-data { background: #bfd9ea; border-radius: 18px; padding: 12px; text-align: center; }
-  .new-request { margin-top: 18px; background: #abd5f5; border-radius: 25px; padding: 12px; border: 2px solid #8fc0dd; }
-  .new-title { font-weight: bold; margin-bottom: 10px; }
-  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 27px 115px; align-items: center; padding-top: 9px; padding-bottom: 9px; padding-right: 30px; }
-  .field-group { display: flex; flex-direction: row; gap: 10px; align-items: center; min-width: 260px; }
-  .label { font-weight: 500; }
-  .select { width: 220px; border-radius: 20px; border: 1px solid #a0bfdc; padding: 6px 8px; background: #bfd9ea; }
-  .amount-input { width: 220px; border-radius: 20px; border: 1px solid #a0bfdc; padding: 6px 8px; background: #bfd9ea; }
-  .input-col { display: flex; flex-direction: column; }
-  .hint { font-size: 12px; color: #5c6b7a; margin-top: 4px; padding: 0 2px; }
-  .upload-btn { background: #9ec4dd; border: none; padding: 5px 12px; border-radius: 16px; font-size: 14px; }
-  .submit-btn { background: #9ec4dd; border: none; padding: 8px 20px; border-radius: 18px; margin-top: 10px; }
-  .error { color: #b00020; font-size: 14px; padding: 4px 10px; }
-  .invalid { border: 1px solid #d9534f !important; box-shadow: 0 0 0 2px rgba(217,83,79,.12); }
-  .upload-btn.invalid { border: 1px solid #d9534f !important; }
-  .success-box { display:none; margin-top:10px; background:#d4ecff; border:1px solid #8fc0dd; color:#2e6d9f; padding:8px 12px; border-radius:16px; }
-  .modal-overlay { display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.3); align-items: center; justify-content: center; z-index: 9999; }
-  .modal-content { background:#d4ecff; border:1px solid #8fc0dd; color:#2e6d9f; padding:14px 16px; border-radius:16px; width:260px; max-width:280px; box-sizing:border-box; text-align:center; }
-  .modal-actions { margin-top:10px; }
-  .close-btn { background:#9ec4dd; border:none; padding:6px 14px; border-radius:16px; }
+  .loan-container {
+    padding: 10px;
+  }
+  .panel {
+    background: #abd5f5;
+    border-radius: 25px;
+    padding: 15px 20px;
+    border: 2px solid #8fc0dd;
+  }
+  .panel-title {
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  .student-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .student-item {
+    background: #8fc0dd;
+    border-radius: 15px;
+    padding: 8px 12px;
+  }
+  .table-panel {
+    margin-top: 15px;
+  }
+  .table-header {
+    display: grid;
+    grid-template-columns: 1.2fr 1.2fr 1fr 1fr 0.8fr;
+    gap: 6px;
+  }
+  .table-header > div {
+    background: #8fc0dd;
+    border-radius: 18px;
+    padding: 8px 12px;
+    text-align: center;
+  }
+  .table-body {
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .table-row {
+    background: #bfd9ea;
+    border-radius: 18px;
+    padding: 12px;
+    display: grid;
+    grid-template-columns: 1.2fr 1.2fr 1fr 1fr 0.8fr;
+    text-align: center;
+    gap: 6px;
+  }
+  .no-data {
+    background: #bfd9ea;
+    border-radius: 18px;
+    padding: 12px;
+    text-align: center;
+  }
+  .new-request {
+    margin-top: 18px;
+    background: #abd5f5;
+    border-radius: 25px;
+    padding: 12px;
+    border: 2px solid #8fc0dd;
+  }
+  .new-title {
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 27px 115px;
+    align-items: center;
+    padding-top: 9px;
+    padding-bottom: 9px;
+    padding-right: 30px;
+  }
+  .field-group {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    align-items: center;
+    min-width: 260px;
+  }
+  .label {
+    font-weight: 500;
+  }
+  .select {
+    width: 220px;
+    border-radius: 20px;
+    border: 1px solid #a0bfdc;
+    padding: 6px 8px;
+    background: #bfd9ea;
+  }
+  .amount-input {
+    width: 220px;
+    border-radius: 20px;
+    border: 1px solid #a0bfdc;
+    padding: 6px 8px;
+    background: #bfd9ea;
+  }
+  .input-col {
+    display: flex;
+    flex-direction: column;
+  }
+  .hint {
+    font-size: 12px;
+    color: #5c6b7a;
+    margin-top: 4px;
+    padding: 0 2px;
+  }
+  .upload-btn {
+    background: #9ec4dd;
+    border: none;
+    padding: 5px 12px;
+    border-radius: 16px;
+    font-size: 14px;
+  }
+  .submit-btn {
+    background: #9ec4dd;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 18px;
+    margin-top: 10px;
+  }
+  .error {
+    color: #b00020;
+    font-size: 14px;
+    padding: 4px 10px;
+  }
+  .invalid {
+    border: 1px solid #d9534f !important;
+    box-shadow: 0 0 0 2px rgba(217, 83, 79, 0.12);
+  }
+  .upload-btn.invalid {
+    border: 1px solid #d9534f !important;
+  }
+  .success-box {
+    display: none;
+    margin-top: 10px;
+    background: #d4ecff;
+    border: 1px solid #8fc0dd;
+    color: #2e6d9f;
+    padding: 8px 12px;
+    border-radius: 16px;
+  }
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+  .modal-content {
+    background: #d4ecff;
+    border: 1px solid #8fc0dd;
+    color: #2e6d9f;
+    padding: 14px 16px;
+    border-radius: 16px;
+    width: 260px;
+    max-width: 280px;
+    box-sizing: border-box;
+    text-align: center;
+  }
+  .modal-actions {
+    margin-top: 10px;
+  }
+  .close-btn {
+    background: #9ec4dd;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 16px;
+  }
 </style>
 
 <div class="loan-container">
   <div class="panel">
     <div class="panel-title">اطلاعات دانشجو</div>
     <div class="student-grid">
-      <div class="student-item">نام: {{ student.first_name|default:"---" }}</div>
-      <div class="student-item">کد دانشجویی: {{ student.student_no|default:"---" }}</div>
-      <div class="student-item">نام خانوادگی: {{ student.last_name|default:"---" }}</div>
-      <div class="student-item">نیمسال پذیرش: {{ student.admission_term|default:"---" }}</div>
-      <div class="student-item">نام پدر: {{ student.father_name|default:"---" }}</div>
-      <div class="student-item">دانشکده / گروه: {{ student.faculty_group|default:"---" }}</div>
-      <div class="student-item">مقطع: {{ student.level|default:"---" }}</div>
-      <div class="student-item">رشته: {{ student.major|default:"---" }}</div>
+      <div class="student-item">
+        نام:
+        <span id="loan-first-name">{{ student.first_name|default:"---" }}</span>
+      </div>
+      <div class="student-item">
+        کد دانشجویی:
+        <span id="loan-student-no">{{ student.student_no|default:"---" }}</span>
+      </div>
+      <div class="student-item">
+        نام خانوادگی:
+        <span id="loan-last-name">{{ student.last_name|default:"---" }}</span>
+      </div>
+      <div class="student-item">
+        نیمسال پذیرش:
+        <span id="loan-admission-term"
+          >{{ student.admission_term|default:"---" }}</span
+        >
+      </div>
+      <div class="student-item">
+        نام پدر:
+        <span id="loan-father-name"
+          >{{ student.father_name|default:"---" }}</span
+        >
+      </div>
+      <div class="student-item">
+        دانشکده / گروه:
+        <span id="loan-faculty-group"
+          >{{ student.faculty_group|default:"---" }}</span
+        >
+      </div>
+      <div class="student-item">
+        مقطع: <span id="loan-level">{{ student.level|default:"---" }}</span>
+      </div>
+      <div class="student-item">
+        رشته: <span id="loan-major">{{ student.major|default:"---" }}</span>
+      </div>
     </div>
   </div>
 
@@ -82,21 +257,48 @@
       <div class="field-group">
         <span class="label">مبلغ ( تومان ) :</span>
         <div class="input-col">
-          <input id="amount" class="amount-input" type="text" placeholder="--------" />
+          <input
+            id="amount"
+            class="amount-input"
+            type="text"
+            placeholder="--------"
+          />
           <div class="hint">مبلغ بین 5 تا 50 میلیون تومان باید باشد</div>
         </div>
       </div>
       <div class="field-group">
         <span class="label">فایل مدارک :</span>
         <div>
-          <button type="button" class="upload-btn" id="uploadTrigger">آپلود</button>
-          <button type="button" class="remove-btn" id="removeFile" style="display:none; background:#d9534f; color:#fff; border:none; padding:5px 10px; border-radius:16px; margin-right:8px;">حذف</button>
-          <input type="file" id="docFile" style="display:none" accept=".pdf,image/jpeg,image/png" />
+          <button type="button" class="upload-btn" id="uploadTrigger">
+            آپلود
+          </button>
+          <button
+            type="button"
+            class="remove-btn"
+            id="removeFile"
+            style="
+              display: none;
+              background: #d9534f;
+              color: #fff;
+              border: none;
+              padding: 5px 10px;
+              border-radius: 16px;
+              margin-right: 8px;
+            "
+          >
+            حذف
+          </button>
+          <input
+            type="file"
+            id="docFile"
+            style="display: none"
+            accept=".pdf,image/jpeg,image/png"
+          />
         </div>
       </div>
     </div>
-    <div class="error" id="errorBox" style="display:none"></div>
-    
+    <div class="error" id="errorBox" style="display: none"></div>
+
     <button type="button" class="submit-btn" id="submitBtn">ثبت</button>
     <div id="successBox" class="success-box"></div>
   </div>
@@ -109,161 +311,326 @@
     </div>
   </div>
   <div id="errorModal" class="modal-overlay">
-    <div class="modal-content" style="background:#ffe6e6;border-color:#d9534f;color:#8b1f1f;">
+    <div
+      class="modal-content"
+      style="background: #ffe6e6; border-color: #d9534f; color: #8b1f1f"
+    >
       <div id="errorModalText">تمامی فیلد ها خالی هستند</div>
       <div class="modal-actions">
-        <button type="button" class="close-btn" id="closeError" style="background:#d9534f;color:#fff;">بستن</button>
+        <button
+          type="button"
+          class="close-btn"
+          id="closeError"
+          style="background: #d9534f; color: #fff"
+        >
+          بستن
+        </button>
       </div>
     </div>
   </div>
   <div id="hintModal" class="modal-overlay">
-    <div class="modal-content" style="background:#ffe6e6;border-color:#d9534f;color:#8b1f1f;">
+    <div
+      class="modal-content"
+      style="background: #ffe6e6; border-color: #d9534f; color: #8b1f1f"
+    >
       <div id="hintModalText">ابتدا باید موضوع درخواست را انتخاب نمایید</div>
       <div class="modal-actions">
-        <button type="button" class="close-btn" id="closeHint" style="background:#d9534f;color:#fff;">بستن</button>
+        <button
+          type="button"
+          class="close-btn"
+          id="closeHint"
+          style="background: #d9534f; color: #fff"
+        >
+          بستن
+        </button>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-(function(){
-  function nf(x){return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-  function toNum(s){return parseInt(String(s).replace(/[^0-9]/g,''))||0}
-  function clampAmountOnBlur(n){ if(n<=0) return 5000000; if(n<5000000) return 5000000; if(n>50000000) return 50000000; return n }
-  const amtEl=document.getElementById('amount')
-  const subjectEl=document.getElementById('requestSubject')
-  const clsEl=document.getElementById('facilityClass')
-  const errEl=document.getElementById('errorBox')
-  const upBtn=document.getElementById('uploadTrigger')
-  const fileEl=document.getElementById('docFile')
-  const rmBtn=document.getElementById('removeFile')
-  const successEl=document.getElementById('successBox')
-  const successModal=document.getElementById('successModal')
-  const closeSuccess=document.getElementById('closeSuccess')
-  const errorModal=document.getElementById('errorModal')
-  const closeError=document.getElementById('closeError')
-  const hintModal=document.getElementById('hintModal')
-  const closeHint=document.getElementById('closeHint')
-  function clearInvalid(){ amtEl.classList.remove('invalid'); subjectEl.classList.remove('invalid'); clsEl.classList.remove('invalid'); upBtn.classList.remove('invalid') }
+  (function () {
+    function nf(x) {
+      return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+    function toNum(s) {
+      return parseInt(String(s).replace(/[^0-9]/g, "")) || 0;
+    }
+    function clampAmountOnBlur(n) {
+      if (n <= 0) return 5000000;
+      if (n < 5000000) return 5000000;
+      if (n > 50000000) return 50000000;
+      return n;
+    }
+    const amtEl = document.getElementById("amount");
+    const subjectEl = document.getElementById("requestSubject");
+    const clsEl = document.getElementById("facilityClass");
+    const errEl = document.getElementById("errorBox");
+    const upBtn = document.getElementById("uploadTrigger");
+    const fileEl = document.getElementById("docFile");
+    const rmBtn = document.getElementById("removeFile");
+    const successEl = document.getElementById("successBox");
+    const successModal = document.getElementById("successModal");
+    const closeSuccess = document.getElementById("closeSuccess");
+    const errorModal = document.getElementById("errorModal");
+    const closeError = document.getElementById("closeError");
+    const hintModal = document.getElementById("hintModal");
+    const closeHint = document.getElementById("closeHint");
+    function clearInvalid() {
+      amtEl.classList.remove("invalid");
+      subjectEl.classList.remove("invalid");
+      clsEl.classList.remove("invalid");
+      upBtn.classList.remove("invalid");
+    }
 
-  function renderClassOptions(s){
-    while(clsEl.firstChild){ clsEl.removeChild(clsEl.firstChild) }
-    function addOption(val, txt){ var o=document.createElement('option'); o.value=val; o.textContent=txt; clsEl.appendChild(o) }
-    addOption('-----','-----')
-    if(s==='student'){
-      addOption('long','شهریه - بلند مدت')
-      addOption('short','شهریه - کوتاه مدت')
-    } else if(s==='tuition'){
-      addOption('long','اقساط بلند مدت')
-      addOption('short','اقساط کوتاه مدت')
+    function renderClassOptions(s) {
+      while (clsEl.firstChild) {
+        clsEl.removeChild(clsEl.firstChild);
+      }
+      function addOption(val, txt) {
+        var o = document.createElement("option");
+        o.value = val;
+        o.textContent = txt;
+        clsEl.appendChild(o);
+      }
+      addOption("-----", "-----");
+      if (s === "student") {
+        addOption("long", "شهریه - بلند مدت");
+        addOption("short", "شهریه - کوتاه مدت");
+      } else if (s === "tuition") {
+        addOption("long", "اقساط بلند مدت");
+        addOption("short", "اقساط کوتاه مدت");
+      }
+      clsEl.value = "-----";
     }
-    clsEl.value='-----'
-  }
-  upBtn.addEventListener('click',function(){fileEl.click()})
-  rmBtn.addEventListener('click',function(){
-    fileEl.value=''
-    upBtn.textContent='آپلود'
-    rmBtn.style.display='none'
-  })
-  fileEl.addEventListener('change',function(){
-    errEl.style.display='none'; errEl.textContent=''
-    const f=this.files && this.files[0]
-    if(!f) return
-    const ext = (f.name.split('.').pop()||'').toLowerCase()
-    const isJpg = (f.type==='image/jpeg') || (ext==='jpg' || ext==='jpeg')
-    const isPng = (f.type==='image/png') || (ext==='png')
-    const isPdf = (f.type==='application/pdf') || (ext==='pdf')
-    if(!(isJpg||isPng||isPdf)){ errEl.textContent='فقط فایل‌های PDF, JPG, PNG مجاز هستند'; errEl.style.display='block'; this.value=''; return }
-    if((isJpg||isPng) && f.size>1048576){ errEl.textContent='حجم تصاویر JPG/PNG باید حداکثر 1 مگابایت باشد'; errEl.style.display='block'; this.value=''; return }
-    if(isPdf && f.size>10485760){ errEl.textContent='حجم PDF باید حداکثر 10 مگابایت باشد'; errEl.style.display='block'; this.value=''; return }
-    upBtn.textContent=f.name
-    rmBtn.style.display='inline-block'
-    upBtn.classList.remove('invalid')
-  })
-  amtEl.addEventListener('input',function(){
-    const v=this.value
-    const numeric=v.replace(/[^0-9]/g,'')
-    if(numeric) this.value=nf(parseInt(numeric))
-    else this.value=''
-    this.classList.remove('invalid')
-  })
-  amtEl.addEventListener('blur',function(){
-    const v=this.value
-    const numeric=v.replace(/[^0-9]/g,'')
-    if(!numeric){ this.value=''; return }
-    const n=toNum(v)
-    const c=clampAmountOnBlur(n)
-    this.value=nf(c)
-  })
-  subjectEl.addEventListener('change',function(){ this.classList.remove('invalid'); renderClassOptions(this.value) })
-  clsEl.addEventListener('change',function(){ this.classList.remove('invalid') })
-  clsEl.addEventListener('mousedown',function(e){
-    if(subjectEl.value==='-----'){
-      e.preventDefault()
-      document.getElementById('hintModalText').textContent='ابتدا باید موضوع درخواست را انتخاب نمایید'
-      hintModal.style.display='flex'
+    upBtn.addEventListener("click", function () {
+      fileEl.click();
+    });
+    rmBtn.addEventListener("click", function () {
+      fileEl.value = "";
+      upBtn.textContent = "آپلود";
+      rmBtn.style.display = "none";
+    });
+    fileEl.addEventListener("change", function () {
+      errEl.style.display = "none";
+      errEl.textContent = "";
+      const f = this.files && this.files[0];
+      if (!f) return;
+      const ext = (f.name.split(".").pop() || "").toLowerCase();
+      const isJpg = f.type === "image/jpeg" || ext === "jpg" || ext === "jpeg";
+      const isPng = f.type === "image/png" || ext === "png";
+      const isPdf = f.type === "application/pdf" || ext === "pdf";
+      if (!(isJpg || isPng || isPdf)) {
+        errEl.textContent = "فقط فایل‌های PDF, JPG, PNG مجاز هستند";
+        errEl.style.display = "block";
+        this.value = "";
+        return;
+      }
+      if ((isJpg || isPng) && f.size > 1048576) {
+        errEl.textContent = "حجم تصاویر JPG/PNG باید حداکثر 1 مگابایت باشد";
+        errEl.style.display = "block";
+        this.value = "";
+        return;
+      }
+      if (isPdf && f.size > 10485760) {
+        errEl.textContent = "حجم PDF باید حداکثر 10 مگابایت باشد";
+        errEl.style.display = "block";
+        this.value = "";
+        return;
+      }
+      upBtn.textContent = f.name;
+      rmBtn.style.display = "inline-block";
+      upBtn.classList.remove("invalid");
+    });
+    amtEl.addEventListener("input", function () {
+      const v = this.value;
+      const numeric = v.replace(/[^0-9]/g, "");
+      if (numeric) this.value = nf(parseInt(numeric));
+      else this.value = "";
+      this.classList.remove("invalid");
+    });
+    amtEl.addEventListener("blur", function () {
+      const v = this.value;
+      const numeric = v.replace(/[^0-9]/g, "");
+      if (!numeric) {
+        this.value = "";
+        return;
+      }
+      const n = toNum(v);
+      const c = clampAmountOnBlur(n);
+      this.value = nf(c);
+    });
+    subjectEl.addEventListener("change", function () {
+      this.classList.remove("invalid");
+      renderClassOptions(this.value);
+    });
+    clsEl.addEventListener("change", function () {
+      this.classList.remove("invalid");
+    });
+    clsEl.addEventListener("mousedown", function (e) {
+      if (subjectEl.value === "-----") {
+        e.preventDefault();
+        document.getElementById("hintModalText").textContent =
+          "ابتدا باید موضوع درخواست را انتخاب نمایید";
+        hintModal.style.display = "flex";
+      }
+    });
+    clsEl.addEventListener("keydown", function (e) {
+      if (subjectEl.value === "-----") {
+        e.preventDefault();
+        document.getElementById("hintModalText").textContent =
+          "ابتدا باید موضوع درخواست را انتخاب نمایید";
+        hintModal.style.display = "flex";
+      }
+    });
+    amtEl.addEventListener("focus", function () {
+      const n = toNum(this.value);
+      if (n > 0) this.value = String(n);
+    });
+    document.getElementById("submitBtn").addEventListener("click", function () {
+      successEl.style.display = "none";
+      errEl.style.display = "none";
+      errEl.textContent = "";
+      clearInvalid();
+      const s = subjectEl.value;
+      const c = clsEl.value;
+      const raw = amtEl.value;
+      const hasAmount = /\d/.test(raw);
+      const fileEmpty = !(fileEl.files && fileEl.files.length);
+      const allEmpty =
+        !hasAmount && s === "-----" && c === "-----" && fileEmpty;
+      if (allEmpty) {
+        subjectEl.classList.add("invalid");
+        clsEl.classList.add("invalid");
+        amtEl.classList.add("invalid");
+        upBtn.classList.add("invalid");
+        document.getElementById("errorModalText").textContent =
+          "تمامی فیلد ها خالی هستند";
+        errorModal.style.display = "flex";
+        return;
+      }
+      let hasError = false;
+      if (!hasAmount) {
+        amtEl.classList.add("invalid");
+        hasError = true;
+      }
+      let n;
+      if (hasAmount) {
+        n = clampAmountOnBlur(toNum(raw));
+        amtEl.value = nf(n);
+        if (n < 5000000) {
+          amtEl.classList.add("invalid");
+          hasError = true;
+        }
+        if (n > 50000000) {
+          amtEl.classList.add("invalid");
+          hasError = true;
+        }
+      }
+      if (s === "-----") {
+        subjectEl.classList.add("invalid");
+        hasError = true;
+      }
+      if (c === "-----") {
+        clsEl.classList.add("invalid");
+        hasError = true;
+      }
+      if (fileEmpty) {
+        upBtn.classList.add("invalid");
+        hasError = true;
+      }
+      if (hasError) return;
+      const body = document.querySelector(".table-body");
+      const noData = body.querySelector(".no-data");
+      if (noData) body.removeChild(noData);
+      const row = document.createElement("div");
+      row.className = "table-row";
+      const subjectTxt =
+        s === "student"
+          ? "وام دانشجویی"
+          : s === "tuition"
+          ? "وام شهریه"
+          : "---";
+      let clsTxt = "---";
+      if (c === "long")
+        clsTxt = s === "tuition" ? "اقساط بلند مدت" : "شهریه - بلند مدت";
+      else if (c === "short")
+        clsTxt = s === "tuition" ? "اقساط کوتاه مدت" : "شهریه - کوتاه مدت";
+      const fileName =
+        fileEl.files && fileEl.files[0] ? fileEl.files[0].name : "---";
+      const cells = [subjectTxt, clsTxt, nf(n), fileName, "در انتظار تایید"];
+      cells.forEach(function (t) {
+        const d = document.createElement("div");
+        d.textContent = t;
+        row.appendChild(d);
+      });
+      body.appendChild(row);
+      amtEl.value = "";
+      subjectEl.value = "-----";
+      renderClassOptions("-----");
+      fileEl.value = "";
+      upBtn.textContent = "آپلود";
+      rmBtn.style.display = "none";
+      document.getElementById("successModalText").textContent =
+        "درخواست شما با موفقیت ثبت گردید";
+      successModal.style.display = "flex";
+    });
+    closeSuccess.addEventListener("click", function () {
+      successModal.style.display = "none";
+    });
+    closeError.addEventListener("click", function () {
+      errorModal.style.display = "none";
+    });
+    closeHint.addEventListener("click", function () {
+      hintModal.style.display = "none";
+    });
+
+    // AJAX call to load student data for loan page
+    function loadLoanStudentData() {
+      fetch("/api/student/profile/full/", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "same-origin",
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          // Update student information
+          if (data.first_name)
+            document.getElementById("loan-first-name").textContent =
+              data.first_name;
+          if (data.last_name)
+            document.getElementById("loan-last-name").textContent =
+              data.last_name;
+          if (data.student_number)
+            document.getElementById("loan-student-no").textContent =
+              data.student_number;
+          if (data.field_of_study)
+            document.getElementById("loan-major").textContent =
+              data.field_of_study;
+          if (data.degree)
+            document.getElementById("loan-level").textContent = data.degree;
+
+          // Format enrollment date
+          if (data.enrollment_date) {
+            const date = new Date(data.enrollment_date);
+            const year = date.getFullYear().toString().slice(-2);
+            const month = (date.getMonth() + 1).toString().padStart(2, "0");
+            document.getElementById("loan-admission-term").textContent =
+              year + month;
+          }
+
+          // Get college/faculty from field_of_study if available
+          // This would require additional API call or data structure
+        })
+        .catch((error) => {
+          console.error("Error loading loan student data:", error);
+        });
     }
-  })
-  clsEl.addEventListener('keydown',function(e){
-    if(subjectEl.value==='-----'){
-      e.preventDefault()
-      document.getElementById('hintModalText').textContent='ابتدا باید موضوع درخواست را انتخاب نمایید'
-      hintModal.style.display='flex'
-    }
-  })
-  amtEl.addEventListener('focus',function(){
-    const n=toNum(this.value)
-    if(n>0) this.value=String(n)
-  })
-  document.getElementById('submitBtn').addEventListener('click',function(){
-    successEl.style.display='none'; errEl.style.display='none'; errEl.textContent=''
-    clearInvalid()
-    const s=subjectEl.value
-    const c=clsEl.value
-    const raw=amtEl.value
-    const hasAmount = /\d/.test(raw)
-    const fileEmpty = !(fileEl.files && fileEl.files.length)
-    const allEmpty = (!hasAmount && s==='-----' && c==='-----' && fileEmpty)
-    if(allEmpty){ subjectEl.classList.add('invalid'); clsEl.classList.add('invalid'); amtEl.classList.add('invalid'); upBtn.classList.add('invalid'); document.getElementById('errorModalText').textContent='تمامی فیلد ها خالی هستند'; errorModal.style.display='flex'; return }
-    let hasError=false
-    if(!hasAmount){ amtEl.classList.add('invalid'); hasError=true }
-    let n
-    if(hasAmount){
-      n=clampAmountOnBlur(toNum(raw))
-      amtEl.value=nf(n)
-      if(n<5000000){ amtEl.classList.add('invalid'); hasError=true }
-      if(n>50000000){ amtEl.classList.add('invalid'); hasError=true }
-    }
-    if(s==='-----'){ subjectEl.classList.add('invalid'); hasError=true }
-    if(c==='-----'){ clsEl.classList.add('invalid'); hasError=true }
-    if(fileEmpty){ upBtn.classList.add('invalid'); hasError=true }
-    if(hasError) return
-    const body=document.querySelector('.table-body')
-    const noData=body.querySelector('.no-data')
-    if(noData) body.removeChild(noData)
-    const row=document.createElement('div')
-    row.className='table-row'
-    const subjectTxt = s==='student'?'وام دانشجویی':(s==='tuition'?'وام شهریه':'---')
-    let clsTxt='---'
-    if(c==='long') clsTxt = (s==='tuition'?'اقساط بلند مدت':'شهریه - بلند مدت')
-    else if(c==='short') clsTxt = (s==='tuition'?'اقساط کوتاه مدت':'شهریه - کوتاه مدت')
-    const fileName = (fileEl.files && fileEl.files[0]) ? fileEl.files[0].name : '---'
-    const cells=[subjectTxt, clsTxt, nf(n), fileName, 'در انتظار تایید']
-    cells.forEach(function(t){ const d=document.createElement('div'); d.textContent=t; row.appendChild(d) })
-    body.appendChild(row)
-    amtEl.value=''
-    subjectEl.value='-----'
-    renderClassOptions('-----')
-    fileEl.value=''
-    upBtn.textContent='آپلود'
-    rmBtn.style.display='none'
-    document.getElementById('successModalText').textContent='درخواست شما با موفقیت ثبت گردید'
-    successModal.style.display='flex'
-  })
-  closeSuccess.addEventListener('click',function(){ successModal.style.display='none' })
-  closeError.addEventListener('click',function(){ errorModal.style.display='none' })
-  closeHint.addEventListener('click',function(){ hintModal.style.display='none' })
-})();
+
+    // Load data on page load
+    loadLoanStudentData();
+  })();
 </script>
 {% endblock %}

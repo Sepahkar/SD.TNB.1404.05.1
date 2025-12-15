@@ -2,7 +2,7 @@ from django.shortcuts import redirect, render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Course
+from ..models import Course
 
 # Create your views here.
 def test(request):

@@ -101,11 +101,13 @@
           alt="User"
           style="width: 22px"
         />
-        <span>{{ term|default:"پانیذ بهارجاه" }}</span>
+        <span id="header-student-name">{{ term|default:"پانیذ بهارجاه" }}</span>
       </div>
 
       <div class="user-box flex items-center">
-        <span>{{ request.user.first_name }} {{ request.user.last_name }}</span>
+        <span id="header-full-name"
+          >{{ request.user.first_name }} {{ request.user.last_name }}</span
+        >
       </div>
     </div>
   </header>
@@ -116,4 +118,31 @@
 
 {% block scripts %}
 <script src="{% static 'EducationSystem/js/dashboard.js' %}"></script>
+<script>
+  // Load student basic info for header
+  function loadHeaderStudentInfo() {
+    fetch("/api/student/profile/basic/", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "same-origin",
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.fullName) {
+          document.getElementById("header-student-name").textContent =
+            data.fullName;
+          document.getElementById("header-full-name").textContent =
+            data.fullName;
+        }
+      })
+      .catch((error) => {
+        console.error("Error loading header student info:", error);
+      });
+  }
+
+  // Load on page load
+  document.addEventListener("DOMContentLoaded", loadHeaderStudentInfo);
+</script>
 {% endblock %} {% endblock %}

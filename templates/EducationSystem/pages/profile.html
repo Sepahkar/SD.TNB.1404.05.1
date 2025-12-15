@@ -1,144 +1,193 @@
-{% extends "EducationSystem/layout/dashboard_base.html" %} {% load static %}
+{% extends "EducationSystem/layout/dashboard_base.html" %} {% load static %} {% block dashboard_content %}
 
-{% block dashboard_content %}
+<style>
+  .profile-card {
+    background: white;
+    border: 3px solid #3b82f6;
+    border-radius: 20px;
+    padding: 40px;
+    position: relative;
+    margin-bottom: 30px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  }
 
-    <style>
+  .avatar-container {
+    position: absolute;
+    border: 3px solid #3b82f6;
+    top: -50px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  }
 
-        .profile-card {
-            background: white;
-            border: 3px solid #3b82f6;
-            border-radius: 20px;
-            padding: 40px;
-            position: relative;
-            margin-bottom: 30px;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  .profile-content {
+    margin-top: 80px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+  }
+
+  .profile-item {
+    display: flex;
+    justify-content: flex-start;
+    gap: 10px;
+  }
+
+  .profile-label {
+    color: #1f2937;
+    font-weight: 600;
+  }
+
+  .profile-value {
+    color: #6b7280;
+    font-weight: 500;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .action-btn {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+  }
+
+  .action-btn:hover {
+    background: #059669;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+  }
+
+  @media (max-width: 768px) {
+    .profile-content {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<div class="profile-card">
+  <div class="avatar-container">
+    <img
+      src="{% static '/EducationSystem/images/graduating-student 1.png' %}"
+      width="55"
+    />
+  </div>
+
+  <div class="profile-content">
+    <div class="profile-item">
+      <span class="profile-label">نام:</span>
+      <span class="profile-value" id="first-name">در حال بارگذاری...</span>
+    </div>
+    <div class="profile-item">
+      <span class="profile-label">شماره دانشجویی:</span>
+      <span class="profile-value" id="student-number">در حال بارگذاری...</span>
+    </div>
+    <div class="profile-item">
+      <span class="profile-label">نام خانوادگی:</span>
+      <span class="profile-value" id="last-name">در حال بارگذاری...</span>
+    </div>
+    <div class="profile-item">
+      <span class="profile-label">نیمسال ورود دانشجو:</span>
+      <span class="profile-value" id="entry-semester">در حال بارگذاری...</span>
+    </div>
+    <div class="profile-item">
+      <span class="profile-label">نام پدر:</span>
+      <span class="profile-value" id="father-name">تعیین نشده</span>
+    </div>
+    <div class="profile-item">
+      <span class="profile-label">رشته:</span>
+      <span class="profile-value" id="major">در حال بارگذاری...</span>
+    </div>
+    <div class="profile-item">
+      <span class="profile-label">کد ملی:</span>
+      <span class="profile-value" id="national-id">در حال بارگذاری...</span>
+    </div>
+    <div class="profile-item">
+      <span class="profile-label">مقطع:</span>
+      <span class="profile-value" id="degree">در حال بارگذاری...</span>
+    </div>
+  </div>
+</div>
+
+<div class="action-buttons">
+  <button class="action-btn">کارت ورود به جلسه امتحان</button>
+  <button class="action-btn">اطلاعیه</button>
+  <button class="action-btn">برنامه هفتگی</button>
+  <button class="action-btn">برگه انتخاب واحد</button>
+</div>
+
+<script>
+  // AJAX call to fetch full profile data
+  function loadProfileData() {
+    fetch("/api/student/profile/full/", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "same-origin",
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        // Update profile fields
+        document.getElementById("first-name").textContent =
+          data.first_name || "تعیین نشده";
+        document.getElementById("last-name").textContent =
+          data.last_name || "تعیین نشده";
+        document.getElementById("student-number").textContent =
+          data.student_number || "تعیین نشده";
+        document.getElementById("national-id").textContent =
+          data.national_id || "تعیین نشده";
+        document.getElementById("major").textContent =
+          data.field_of_study || "تعیین نشده";
+        document.getElementById("degree").textContent =
+          data.degree || "تعیین نشده";
+
+        // Format entry semester
+        if (data.enrollment_date) {
+          const date = new Date(data.enrollment_date);
+          const year = date.getFullYear().toString().slice(-2);
+          const month = (date.getMonth() + 1).toString().padStart(2, "0");
+          document.getElementById("entry-semester").textContent = year + month;
+        } else {
+          document.getElementById("entry-semester").textContent = "تعیین نشده";
         }
+      })
+      .catch((error) => {
+        console.error("Error loading profile data:", error);
+        // Show error message
+        const errorMsg = "خطا در بارگذاری اطلاعات";
+        document.querySelectorAll(".profile-value").forEach((el) => {
+          if (el.textContent === "در حال بارگذاری...") {
+            el.textContent = errorMsg;
+          }
+        });
+      });
+  }
 
-        .avatar-container {
-            position: absolute;
-            border: 3px solid #3b82f6;
-            top: -50px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-
-
-        .profile-content {
-            margin-top: 80px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-
-        .profile-item {
-            display: flex;
-            justify-content: flex-start;
-            gap: 10px;
-        }
-
-        .profile-label {
-            color: #1f2937;
-            font-weight: 600;
-        }
-
-        .profile-value {
-            color: #6b7280;
-            font-weight: 500;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .action-btn {
-            background: #10b981;
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 50px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
-        }
-
-        .action-btn:hover {
-            background: #059669;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
-        }
-
-        @media (max-width: 768px) {
-            .profile-content {
-                grid-template-columns: 1fr;
-            }
-        }
-
-    </style>
-
-        <div class="profile-card">
-            <div class="avatar-container">
-                <img
-          src="{% static '/EducationSystem/images/graduating-student 1.png' %}"
-          width="55"
-        />
-            </div>
-
-            <div class="profile-content">
-                <div class="profile-item">
-                    <span class="profile-label">نام:</span>
-                    <span class="profile-value">باید</span>
-                </div>
-                <div class="profile-item">
-                    <span class="profile-label">شماره دانشجویی:</span>
-                    <span class="profile-value">401111111111</span>
-                </div>
-                <div class="profile-item">
-                    <span class="profile-label">نام خانوادگی:</span>
-                    <span class="profile-value">بهارجاه</span>
-                </div>
-                <div class="profile-item">
-                    <span class="profile-label">نیمسال ورود دانشجو:</span>
-                    <span class="profile-value">4011</span>
-                </div>
-                <div class="profile-item">
-                    <span class="profile-label">نام پدر:</span>
-                    <span class="profile-value">علی</span>
-                </div>
-                <div class="profile-item">
-                    <span class="profile-label">رشته:</span>
-                    <span class="profile-value">مهندسی کامپیوتر</span>
-                </div>
-                <div class="profile-item">
-                    <span class="profile-label">کد ملی:</span>
-                    <span class="profile-value">0012345678</span>
-                </div>
-                <div class="profile-item">
-                    <span class="profile-label">مقطع:</span>
-                    <span class="profile-value">کارشناسی پیوسته</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="action-buttons">
-            <button class="action-btn">کارت ورود به جلسه امتحان</button>
-            <button class="action-btn">اطلاعیه</button>
-            <button class="action-btn">برنامه هفتگی</button>
-            <button class="action-btn">برگه انتخاب واحد</button>
-        </div>
+  // Load data on page load
+  document.addEventListener("DOMContentLoaded", function () {
+    loadProfileData();
+  });
+</script>
 
 {% endblock %}

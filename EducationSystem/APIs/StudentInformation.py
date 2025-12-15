@@ -2,8 +2,8 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Student
-from .serializers import StudentFullSerializer
+from ..models import Student
+from ..serializers import StudentFullSerializer
 
 # Optional: if you use Simple JWT
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -38,14 +38,17 @@ class StudentProfileFullView(APIView):
             return Response({"detail": "studentId not provided. Provide Authorization JWT or ?studentId=..."},
                             status=status.HTTP_400_BAD_REQUEST)
 
-        # ensure integer
+        # Try to get by student_number (string) first, then by id (integer)
         try:
-            student_id = int(student_id)
-        except Exception:
-            return Response({"detail": "studentId must be integer"}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            student = Student.objects.get(student_id=student_id)
+            # First try as student_number (string)
+            try:
+                student = Student.objects.get(student_number=str(student_id))
+            except (Student.DoesNotExist, ValueError):
+                # If that fails, try as id (integer)
+                try:
+                    student = Student.objects.get(id=int(student_id))
+                except (ValueError, Student.DoesNotExist):
+                    raise Student.DoesNotExist
         except Student.DoesNotExist:
             return Response({"detail": "Student not found"}, status=status.HTTP_404_NOT_FOUND)
 

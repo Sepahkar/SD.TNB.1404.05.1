@@ -7,6 +7,7 @@ django-taggit
 django-user-agents
 django-utils-six
 djangorestframework
+djangorestframework-simplejwt
 filelock
 greenlet
 idna
@@ -35,3 +36,5 @@ ua-parser-builtins
 urllib3
 user-agents
 Faker
+fastapi
+pydantic

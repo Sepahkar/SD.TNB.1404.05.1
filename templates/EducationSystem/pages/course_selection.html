@@ -1,351 +1,363 @@
-{% extends "EducationSystem/layout/dashboard_base.html" %} {% load static %}
-
-{% block dashboard_content %}
+{% extends "EducationSystem/layout/dashboard_base.html" %} {% load static %} {%
+block dashboard_content %}
 
 <style>
+  .container {
+    max-width: 1300px;
+    margin: 0 auto;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  }
 
-    .container {
-        max-width: 1300px;
-        margin: 0 auto;
-        background: rgba(255, 255, 255, 0.95);
-        border-radius: 20px;
-        padding: 30px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    }
+  .profile-card {
+    background: white;
+    border: 3px solid #3b82f6;
+    border-radius: 20px;
+    padding: 40px;
+    position: relative;
+  }
 
-    .profile-card {
-        background: white;
-        border: 3px solid #3b82f6;
-        border-radius: 20px;
-        padding: 40px;
-        position: relative;
-    }
+  .avatar-container {
+    position: absolute;
+    top: -50px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  }
 
-    .avatar-container {
-        position: absolute;
-        top: -50px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        width: 120px;
-        height: 120px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-    }
+  .selection-form {
+    text-align: center;
+    margin-top: 80px;
+  }
 
-    .selection-form {
-        text-align: center;
-        margin-top: 80px;
-    }
+  .form-title {
+    color: #1f2937;
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 30px;
+  }
 
-    .form-title {
-        color: #1f2937;
-        font-size: 20px;
-        font-weight: 600;
-        margin-bottom: 30px;
-    }
+  .search-input {
+    width: 100%;
+    max-width: 400px;
+    padding: 15px 25px;
+    border: 2px solid #e5e7eb;
+    border-radius: 50px;
+    font-size: 16px;
+    text-align: center;
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+  }
 
-    .search-input {
-        width: 100%;
-        max-width: 400px;
-        padding: 15px 25px;
-        border: 2px solid #e5e7eb;
-        border-radius: 50px;
-        font-size: 16px;
-        text-align: center;
-        transition: all 0.3s ease;
-        margin-bottom: 20px;
-    }
+  .search-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
 
-    .search-input:focus {
-        outline: none;
-        border-color: #3b82f6;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    }
+  .search-btn {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 15px 50px;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+    margin-top: 20px;
+    margin-left: auto;
+    margin-right: auto;
+  }
 
-    .search-btn {
-        background: #10b981;
-        color: white;
-        border: none;
-        padding: 15px 50px;
-        border-radius: 50px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
-        margin-top: 20px;
-        margin-left: auto;
-        margin-right: auto;
-    }
+  .search-btn:hover {
+    background: #059669;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+  }
 
-    .search-btn:hover {
-        background: #059669;
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
-    }
+  .course-table-container {
+    margin-top: 30px;
+    overflow-x: auto;
+  }
 
-    .course-table-container {
-        margin-top: 30px;
-        overflow-x: auto;
-    }
+  .course-table {
+    width: 100%;
+    background: white;
+    border-collapse: collapse;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  }
 
+  .course-table thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+  }
+
+  .course-table th {
+    padding: 15px;
+    text-align: center;
+    font-weight: 600;
+  }
+
+  .course-table td {
+    padding: 15px;
+    text-align: center;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .course-table tbody tr {
+    transition: all 0.3s ease;
+  }
+
+  .course-table tbody tr:hover {
+    background: #f9fafb;
+  }
+
+  .course-checkbox {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    accent-color: #10b981;
+  }
+
+  .row-number {
+    background: white;
+    border: 2px solid #3b82f6;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: #3b82f6;
+  }
+
+  .submit-btn {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 15px 60px;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+    margin-top: 30px;
+  }
+
+  .submit-btn:hover {
+    background: #059669;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+  }
+
+  .scroll-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: fixed;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .scroll-btn {
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid #3b82f6;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 20px;
+    color: #3b82f6;
+  }
+
+  .scroll-btn:hover {
+    background: #3b82f6;
+    color: white;
+    transform: scale(1.1);
+  }
+
+  .hidden {
+    display: none;
+  }
+
+  @media (max-width: 768px) {
     .course-table {
-        width: 100%;
-        background: white;
-        border-collapse: collapse;
-        border-radius: 10px;
-        overflow: hidden;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      font-size: 14px;
     }
 
-    .course-table thead {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-    }
-
-    .course-table th {
-        padding: 15px;
-        text-align: center;
-        font-weight: 600;
-    }
-
+    .course-table th,
     .course-table td {
-        padding: 15px;
-        text-align: center;
-        border-bottom: 1px solid #e5e7eb;
+      padding: 10px 5px;
     }
-
-    .course-table tbody tr {
-        transition: all 0.3s ease;
-    }
-
-    .course-table tbody tr:hover {
-        background: #f9fafb;
-    }
-
-    .course-checkbox {
-        width: 24px;
-        height: 24px;
-        cursor: pointer;
-        accent-color: #10b981;
-    }
-
-    .row-number {
-        background: white;
-        border: 2px solid #3b82f6;
-        width: 35px;
-        height: 35px;
-        border-radius: 50%;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 600;
-        color: #3b82f6;
-    }
-
-    .submit-btn {
-        background: #10b981;
-        color: white;
-        border: none;
-        padding: 15px 60px;
-        border-radius: 50px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
-        margin-top: 30px;
-    }
-
-    .submit-btn:hover {
-        background: #059669;
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
-    }
-
-    .scroll-controls {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        position: fixed;
-        left: 20px;
-        top: 50%;
-        transform: translateY(-50%);
-    }
-
-    .scroll-btn {
-        background: rgba(255, 255, 255, 0.9);
-        border: 2px solid #3b82f6;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-size: 20px;
-        color: #3b82f6;
-    }
-
-    .scroll-btn:hover {
-        background: #3b82f6;
-        color: white;
-        transform: scale(1.1);
-    }
-
-    .hidden {
-        display: none;
-    }
-
-    @media (max-width: 768px) {
-
-        .course-table {
-            font-size: 14px;
-        }
-
-        .course-table th,
-        .course-table td {
-            padding: 10px 5px;
-        }
-    }
+  }
 </style>
 
-
 <div class="container">
-
-
-    <div class="profile-card">
-        <div class="avatar-container">
-            <img
-                    src="{% static '/EducationSystem/images/graduating-student 1.png' %}"
-                    width="55"
-            />
-
-        </div>
-
-        <form method="post" class="selection-form">
-            <h2 class="form-title">لطفا نام درس مورد نظر خود را وارد کنید:</h2>
-
-            <input
-                    type="text"
-                    name="course_name"
-                    class="search-input"
-                    placeholder="توسعه نرم افزار"
-            >
-
-            <button type="button" class="search-btn hidden">جستجو</button>
-
-            <div class="course-table-container hidden">
-                <table class="course-table">
-                    <thead>
-                    <tr>
-                        <th></th>
-                        <th>نام درس</th>
-                        <th>کد درس</th>
-                        <th>نام استاد</th>
-                        <th>زمان برگزاری</th>
-                        <th>مکان برگزاری</th>
-                        <th>تاریخ امتحان</th>
-                        <th></th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr>
-                        <td>
-                            <input type="checkbox" name="course1" class="course-checkbox">
-                        </td>
-                        <td>توسعه نرم افزار</td>
-                        <td>221170</td>
-                        <td>محمد سپه کار</td>
-                        <td>سه شنبه 10:00-12:45</td>
-                        <td>B403</td>
-                        <td>1404.04.17</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <input type="checkbox" name="course2" class="course-checkbox">
-                        </td>
-                        <td>توسعه نرم افزار</td>
-                        <td>221170</td>
-                        <td>علی رضایی</td>
-                        <td>چهارشنبه 14:00-16:45</td>
-                        <td>A201</td>
-                        <td>1404.04.18</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <input type="checkbox" name="course3" class="course-checkbox">
-                        </td>
-                        <td>توسعه نرم افزار</td>
-                        <td>221170</td>
-                        <td>سارا احمدی</td>
-                        <td>یکشنبه 08:00-10:45</td>
-                        <td>C105</td>
-                        <td>1404.04.19</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <input type="checkbox" name="course4" class="course-checkbox">
-                        </td>
-                        <td>توسعه نرم افزار</td>
-                        <td>221170</td>
-                        <td>حسین کریمی</td>
-                        <td>دوشنبه 16:00-18:45</td>
-                        <td>D302</td>
-                        <td>1404.04.20</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <input type="checkbox" name="course5" class="course-checkbox">
-                        </td>
-                        <td>توسعه نرم افزار</td>
-                        <td>221170</td>
-                        <td>فاطمه محمدی</td>
-                        <td>شنبه 13:00-15:45</td>
-                        <td>E104</td>
-                        <td>1404.04.21</td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <button type="button" class="submit-btn hidden">انتخاب</button>
-        </form>
+  <div class="profile-card">
+    <div class="avatar-container">
+      <img
+        src="{% static '/EducationSystem/images/graduating-student 1.png' %}"
+        width="55"
+      />
     </div>
+
+    <form method="post" class="selection-form">
+      <h2 class="form-title">لطفا نام درس مورد نظر خود را وارد کنید:</h2>
+
+      <input
+        type="text"
+        name="course_name"
+        class="search-input"
+        placeholder="توسعه نرم افزار"
+      />
+
+      <button type="button" class="search-btn hidden" id="search-btn">
+        جستجو
+      </button>
+
+      <div class="course-table-container hidden" id="course-table-container">
+        <div
+          id="loading-message"
+          style="text-align: center; padding: 20px; color: #666"
+        >
+          در حال جستجو...
+        </div>
+        <table class="course-table" id="course-table" style="display: none">
+          <thead>
+            <tr>
+              <th></th>
+              <th>نام درس</th>
+              <th>کد درس</th>
+              <th>نام استاد</th>
+              <th>زمان برگزاری</th>
+              <th>مکان برگزاری</th>
+              <th>تاریخ امتحان</th>
+              <th>ظرفیت</th>
+            </tr>
+          </thead>
+          <tbody id="course-tbody"></tbody>
+        </table>
+      </div>
+
+      <button type="button" class="submit-btn hidden">انتخاب</button>
+    </form>
+  </div>
 </div>
 
 <script>
-  const searchBtn = document.querySelector('.search-btn');
-  const selectBtn = document.querySelector('.submit-btn');
-  const searchInput = document.querySelector('.search-input');
-  const courseTable = document.querySelector('.course-table-container');
-
-
-  function toggleTable() {
-    if (searchInput.value.trim() !== '') {
-      courseTable.classList.remove('hidden');
-      selectBtn.classList.remove('hidden');
-    } else {
-      courseTable.classList.add('hidden');
-      selectBtn.classList.add('hidden');
-    }
-  }
+  const searchBtn = document.getElementById("search-btn");
+  const selectBtn = document.querySelector(".submit-btn");
+  const searchInput = document.querySelector(".search-input");
+  const courseTable = document.getElementById("course-table-container");
+  const courseTbody = document.getElementById("course-tbody");
+  const loadingMessage = document.getElementById("loading-message");
+  const courseTableElement = document.getElementById("course-table");
 
   function toggleSearchBtn() {
-    if (searchInput.value.trim() !== '') {
-      searchBtn.classList.remove('hidden');
-    }else {
-      searchBtn.classList.add('hidden');
+    if (searchInput.value.trim() !== "") {
+      searchBtn.classList.remove("hidden");
+    } else {
+      searchBtn.classList.add("hidden");
+      courseTable.classList.add("hidden");
+      selectBtn.classList.add("hidden");
     }
   }
 
-  searchInput.addEventListener('change', toggleSearchBtn);
+  function searchCourses() {
+    const courseName = searchInput.value.trim();
+    if (!courseName) {
+      return;
+    }
 
-  searchBtn.addEventListener('click', toggleTable);
+    // Show loading
+    courseTable.classList.remove("hidden");
+    courseTableElement.style.display = "none";
+    loadingMessage.style.display = "block";
+    selectBtn.classList.remove("hidden");
 
+    // AJAX call to search courses
+    fetch(
+      `/api/courses/provided/?course_name=${encodeURIComponent(courseName)}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "same-origin",
+      }
+    )
+      .then((response) => response.json())
+      .then((data) => {
+        loadingMessage.style.display = "none";
+        courseTableElement.style.display = "table";
+
+        // Clear previous results
+        courseTbody.innerHTML = "";
+
+        if (data.results && data.results.length > 0) {
+          // For each course, we need to get class details
+          // For now, we'll show the course list
+          // In a full implementation, you'd call another API to get class details
+          data.results.forEach((course, index) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+            <td>
+              <input type="checkbox" name="course_${
+                course.course_id
+              }" class="course-checkbox" data-course-id="${course.course_id}">
+            </td>
+            <td>${course.name_course || course.name}</td>
+            <td>${course.course_id}</td>
+            <td>در حال بارگذاری...</td>
+            <td>در حال بارگذاری...</td>
+            <td>در حال بارگذاری...</td>
+            <td>تعیین نشده</td>
+            <td>-</td>
+          `;
+            courseTbody.appendChild(row);
+
+            // TODO: Make another API call to get class details for this course
+            // For now, we'll use the course data we have
+          });
+        } else {
+          courseTbody.innerHTML =
+            '<tr><td colspan="8" style="text-align: center; padding: 20px;">هیچ درسی یافت نشد</td></tr>';
+        }
+      })
+      .catch((error) => {
+        console.error("Error searching courses:", error);
+        loadingMessage.style.display = "none";
+        courseTbody.innerHTML =
+          '<tr><td colspan="8" style="text-align: center; padding: 20px; color: red;">خطا در جستجو. لطفا دوباره تلاش کنید.</td></tr>';
+      });
+  }
+
+  searchInput.addEventListener("input", toggleSearchBtn);
+  searchInput.addEventListener("keypress", function (e) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      searchCourses();
+    }
+  });
+  searchBtn.addEventListener("click", searchCourses);
 </script>
 
 {% endblock %}
