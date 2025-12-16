@@ -126,7 +126,7 @@
       errorMessage.style.display = "none";
 
       // AJAX call to login API
-      fetch("/api/auth/login/", {
+      fetch("/EducationSystem/api/auth/login/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -139,14 +139,29 @@
         }),
         credentials: "same-origin",
       })
-        .then((response) => response.json())
+        .then((response) => {
+          if (!response.ok) {
+            return response
+              .json()
+              .then((data) => {
+                throw new Error(
+                  data.detail ||
+                    `خطا: ${response.status} ${response.statusText}`
+                );
+              })
+              .catch(() => {
+                throw new Error(`خطا در ارتباط با سرور: ${response.status}`);
+              });
+          }
+          return response.json();
+        })
         .then((data) => {
           if (data.token) {
             // Store token in localStorage (optional)
             localStorage.setItem("auth_token", data.token);
 
             // Redirect to dashboard
-            window.location.href = "/dashboard/";
+            window.location.href = "/EducationSystem/dashboard/";
           } else {
             throw new Error(data.detail || "خطا در ورود");
           }
